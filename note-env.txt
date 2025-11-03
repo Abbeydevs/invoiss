@@ -1,0 +1,27 @@
+# Database (Replace with your NeonDB connection strings)
+DATABASE_URL="postgresql://neondb_owner:npg_SJmwfY1D0GrH@ep-morning-king-a4vpavnc-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DIRECT_URL="postgresql://neondb_owner:npg_SJmwfY1D0GrH@ep-morning-king-a4vpavnc.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="dzQnO+hFKLhfe6kWc2LxOOxx9A1xf9TjhZVTxIF3ELU="
+
+# Cloudinary (Replace with your values)
+CLOUDINARY_CLOUD_NAME="dvhbcih9v"
+CLOUDINARY_API_KEY="835521332387759"
+CLOUDINARY_API_SECRET="IHV_NDmHYyjELefWmlTxOyvPrRY"
+CLOUDINARY_UPLOAD_PRESET="invoiss-logos"
+
+# Resend (Replace with your API key)
+RESEND_API_KEY="re_VY8fZHzJ_MLyn8BWpQL2BGdNPHz2YxWwx"
+RESEND_FROM_EMAIL="invoiss@thesoftwarehub.com"
+
+# App Config
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_NAME="Invoiss"
+
+# Nomba (We'll add this later)
+# NOMBA_API_KEY="your-nomba-api-key"
+# NOMBA_SECRET_KEY="your-nomba-secret"
+# NOMBA_WEBHOOK_SECRET="your-webhook-secret"
+# NOMBA_BASE_URL="https://api.nomba.com/v1"
