@@ -3,6 +3,7 @@ import { Albert_Sans } from "next/font/google";
 import "./globals.css";
 import Sessionprovider from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={albertSans.className}>
-        <Sessionprovider>{children}</Sessionprovider>
+        <QueryProvider>
+          <Sessionprovider>{children}</Sessionprovider>
+        </QueryProvider>
         <Toaster
           position="top-right"
           richColors
