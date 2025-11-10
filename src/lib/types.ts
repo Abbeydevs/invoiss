@@ -5,3 +5,11 @@ export type BankAccount = {
   accountName: string;
   isDefault: boolean;
 };
+
+export type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  address?: string | null;
+};
