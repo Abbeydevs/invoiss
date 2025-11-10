@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Form,
   FormControl,
@@ -28,94 +28,112 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../ui/command";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import {
+  CalendarIcon,
+  Plus,
+  Trash2,
+  ChevronsUpDown,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { Calendar } from "../ui/calendar";
+import { BankAccount } from "@/lib/types";
 
-const invoiceItemSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  unitPrice: z.number().min(0, "Price must be positive"),
-});
+import {
+  invoiceSchema,
+  InvoiceFormValues,
+} from "@/lib/validators/invoice.schema";
+import { CustomerForm } from "../customers/CustomerForm";
+import {
+  createCustomer,
+  getBankAccounts,
+  getCustomers,
+} from "@/lib/api/action";
 
-const invoiceSchema = z.object({
-  customerId: z.string().optional(),
-  billToName: z.string().min(2, "Customer name is required"),
-  billToEmail: z.string().email("Valid email is required"),
-  billToPhone: z.string().optional(),
-  billToAddress: z.string().optional(),
-  invoiceDate: z.date(),
-  dueDate: z.date(),
-  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
-  taxRate: z.number().min(0).max(100).optional(),
-  discountType: z.enum(["PERCENTAGE", "FIXED"]).optional(),
-  discountValue: z.number().min(0).optional(),
-  paymentTerms: z.string().optional(),
-  notes: z.string().optional(),
-  bankAccountId: z.string().min(1, "Bank account is required"),
-});
-
-type InvoiceFormValues = z.infer<typeof invoiceSchema>;
-
-interface InvoiceFormProps {
-  isDraft?: boolean;
-}
-
-export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
+export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [customerComboboxOpen, setCustomerComboboxOpen] = useState(false);
+
+  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ["customers"],
+    queryFn: getCustomers,
+  });
+
+  const { data: bankAccounts, isLoading: isLoadingBanks } = useQuery({
+    queryKey: ["bankAccounts"],
+    queryFn: getBankAccounts,
+  });
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       invoiceDate: new Date(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
       taxRate: 0,
       discountValue: 0,
     },
   });
 
-  const { append, remove } = useFieldArray({
+  const { setValue } = form;
+
+  useEffect(() => {
+    if (bankAccounts && bankAccounts.length > 0) {
+      const defaultAccount = bankAccounts.find((acc) => acc.isDefault);
+      if (defaultAccount) {
+        setValue("bankAccountId", defaultAccount.id);
+      } else {
+        setValue("bankAccountId", bankAccounts[0].id);
+      }
+    }
+  }, [bankAccounts, setValue]);
+
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items",
   });
 
-  const calculateTotals = () => {
-    const items = form.watch("items");
-    const taxRate = form.watch("taxRate") || 0;
-    const discountType = form.watch("discountType");
-    const discountValue = form.watch("discountValue") || 0;
-
-    const subtotal = items.reduce((sum, item) => {
-      return sum + item.quantity * item.unitPrice;
-    }, 0);
-
-    const taxAmount = (subtotal * taxRate) / 100;
-
-    let discountAmount = 0;
-    if (discountType === "PERCENTAGE") {
-      discountAmount = (subtotal * discountValue) / 100;
-    } else if (discountType === "FIXED") {
-      discountAmount = discountValue;
-    }
-
-    const total = subtotal + taxAmount - discountAmount;
-
-    return {
-      subtotal,
-      taxAmount,
-      discountAmount,
-      total,
-    };
-  };
-
-  const totals = calculateTotals();
+  const customerMutation = useMutation({
+    mutationFn: createCustomer,
+    onSuccess: (data) => {
+      toast.success("Customer created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      const newCustomer = data.customer;
+      form.setValue("customerId", newCustomer.id);
+      form.setValue("billToName", newCustomer.name);
+      form.setValue("billToEmail", newCustomer.email);
+      form.setValue("billToPhone", newCustomer.phone || "");
+      form.setValue("billToAddress", newCustomer.address || "");
+      setCustomerModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const onSubmit = async (data: InvoiceFormValues) => {
     setIsSubmitting(true);
-
+    const totals = calculateTotals();
     try {
       const response = await fetch("/api/invoices", {
         method: "POST",
@@ -130,17 +148,12 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
           balanceDue: totals.total,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create invoice");
-      }
-
-      const result = await response.json();
-
+      if (!response.ok) throw new Error("Failed to create invoice");
+      await response.json();
       toast.success(
         isDraft ? "Invoice saved as draft" : "Invoice created successfully!"
       );
-      router.push(`/dashboard/invoices/${result.invoice.id}`);
+      router.push(`/dashboard/invoices`);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -150,16 +163,142 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
     }
   };
 
+  const calculateTotals = () => {
+    const items = form.watch("items");
+    const taxRate = form.watch("taxRate") || 0;
+    const discountType = form.watch("discountType");
+    const discountValue = form.watch("discountValue") || 0;
+    const subtotal = items.reduce((sum, item) => {
+      return sum + (item.quantity || 0) * (item.unitPrice || 0);
+    }, 0);
+    const taxAmount = (subtotal * taxRate) / 100;
+    let discountAmount = 0;
+    if (discountType === "PERCENTAGE") {
+      discountAmount = (subtotal * discountValue) / 100;
+    } else if (discountType === "FIXED") {
+      discountAmount = discountValue;
+    }
+    const total = subtotal + taxAmount - discountAmount;
+    return { subtotal, taxAmount, discountAmount, total };
+  };
+
+  const totals = calculateTotals();
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card className="border-0 shadow-lg">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Bill To</CardTitle>
+                <Dialog
+                  open={customerModalOpen}
+                  onOpenChange={setCustomerModalOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Customer
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Customer</DialogTitle>
+                    </DialogHeader>
+                    <CustomerForm
+                      isLoading={customerMutation.isPending}
+                      onSubmit={(values) => customerMutation.mutate(values)}
+                    />
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Customer</FormLabel>
+                      <Popover
+                        open={customerComboboxOpen}
+                        onOpenChange={setCustomerComboboxOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              disabled={isLoadingCustomers}
+                            >
+                              {isLoadingCustomers && "Loading customers..."}
+                              {!isLoadingCustomers &&
+                                (field.value
+                                  ? customers?.find((c) => c.id === field.value)
+                                      ?.name
+                                  : "Select customer")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search customers..." />
+                            <CommandEmpty>No customers found.</CommandEmpty>
+                            <CommandList>
+                              <CommandGroup>
+                                {customers?.map((customer) => (
+                                  <CommandItem
+                                    value={customer.name}
+                                    key={customer.id}
+                                    onSelect={() => {
+                                      form.setValue("customerId", customer.id);
+                                      form.setValue(
+                                        "billToName",
+                                        customer.name
+                                      );
+                                      form.setValue(
+                                        "billToEmail",
+                                        customer.email
+                                      );
+                                      form.setValue(
+                                        "billToPhone",
+                                        customer.phone || ""
+                                      );
+                                      form.setValue(
+                                        "billToAddress",
+                                        customer.address || ""
+                                      );
+                                      setCustomerComboboxOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === customer.id
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {customer.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Separator />
+
                 <FormField
                   control={form.control}
                   name="billToName"
@@ -173,7 +312,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="billToEmail"
@@ -191,49 +329,19 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="billToPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+234 800 000 0000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="bankAccountId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bank Account *</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select account" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="temp">
-                              GTBank - 0123456789
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
+                <FormField
+                  control={form.control}
+                  name="billToPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+234 800 000 0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="billToAddress"
@@ -249,7 +357,7 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                 />
               </CardContent>
             </Card>
-            {/* Invoice Items */}
+
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -268,9 +376,9 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {form.watch("items").map((_, index) => (
+                {fields.map((field, index) => (
                   <div
-                    key={index}
+                    key={field.id}
                     className="grid grid-cols-12 gap-3 items-start p-4 bg-gray-50 rounded-lg"
                   >
                     <div className="col-span-12 md:col-span-5">
@@ -293,7 +401,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                         )}
                       />
                     </div>
-
                     <div className="col-span-5 md:col-span-2">
                       <FormField
                         control={form.control}
@@ -316,7 +423,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                         )}
                       />
                     </div>
-
                     <div className="col-span-5 md:col-span-2">
                       <FormField
                         control={form.control}
@@ -341,19 +447,17 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                         )}
                       />
                     </div>
-
                     <div className="col-span-2 md:col-span-2">
                       <FormLabel className="text-xs">Amount</FormLabel>
                       <div className="h-10 flex items-center font-semibold">
                         ₦
                         {(
-                          form.watch(`items.${index}.quantity`) *
-                          form.watch(`items.${index}.unitPrice`)
+                          (form.watch(`items.${index}.quantity`) || 0) *
+                          (form.watch(`items.${index}.unitPrice`) || 0)
                         ).toFixed(2)}
                       </div>
                     </div>
-
-                    {form.watch("items").length > 1 && (
+                    {fields.length > 1 && (
                       <div className="col-span-12 md:col-span-1 flex md:items-end md:pb-2">
                         <Button
                           type="button"
@@ -371,7 +475,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
               </CardContent>
             </Card>
 
-            {/* Additional Details */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-lg">Additional Details</CardTitle>
@@ -393,7 +496,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="notes"
@@ -415,9 +517,7 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
             </Card>
           </div>
 
-          {/* Summary - Right Side */}
           <div className="space-y-6">
-            {/* Dates */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-lg">Invoice Details</CardTitle>
@@ -461,7 +561,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="dueDate"
@@ -500,10 +599,46 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
+
+                <Separator />
+
+                <FormField
+                  control={form.control}
+                  name="bankAccountId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bank Account *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isLoadingBanks}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                isLoadingBanks
+                                  ? "Loading banks..."
+                                  : "Select account"
+                              }
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {bankAccounts?.map((account: BankAccount) => (
+                            <SelectItem key={account.id} value={account.id}>
+                              {`${account.bankName} - (...${account.accountNumber.slice(-4)})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Tax & Discount */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-lg">Tax & Discount</CardTitle>
@@ -532,7 +667,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                     </FormItem>
                   )}
                 />
-
                 <div className="grid grid-cols-2 gap-2">
                   <FormField
                     control={form.control}
@@ -558,7 +692,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="discountValue"
@@ -585,7 +718,6 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
               </CardContent>
             </Card>
 
-            {/* Total Summary */}
             <Card className="border-0 shadow-lg bg-linear-to-br from-blue-50 to-purple-50">
               <CardHeader>
                 <CardTitle className="text-lg">Summary</CardTitle>
@@ -619,25 +751,31 @@ export function InvoiceForm({ isDraft = false }: InvoiceFormProps) {
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
             <div className="space-y-3">
               <Button
                 type="submit"
                 className="w-full bg-[#1451cb] hover:bg-[#1451cb]/90"
                 disabled={isSubmitting}
+                onClick={() => (isDraft = false)}
               >
-                {isSubmitting ? "Creating..." : "Create Invoice"}
+                {isSubmitting && !isDraft ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Create Invoice"
+                )}
               </Button>
               <Button
-                type="button"
+                type="submit"
                 variant="outline"
                 className="w-full"
-                onClick={() =>
-                  form.handleSubmit((data) => onSubmit({ ...data }))()
-                }
+                onClick={() => (isDraft = true)}
                 disabled={isSubmitting}
               >
-                Save as Draft
+                {isSubmitting && isDraft ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Save as Draft"
+                )}
               </Button>
             </div>
           </div>

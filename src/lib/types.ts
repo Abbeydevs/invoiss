@@ -13,3 +13,10 @@ export type Customer = {
   phone?: string | null;
   address?: string | null;
 };
+
+export type Profile = {
+  id: string;
+  userId: string;
+  businessName: string | null;
+  logoUrl: string | null;
+};
