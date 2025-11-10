@@ -20,3 +20,23 @@ export type Profile = {
   businessName: string | null;
   logoUrl: string | null;
 };
+
+export type Invoice = {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  totalAmount: number;
+  status:
+    | "DRAFT"
+    | "SENT"
+    | "VIEWED"
+    | "UNPAID"
+    | "PARTIALLY_PAID"
+    | "PAID"
+    | "OVERDUE"
+    | "CANCELLED";
+  customer: {
+    name: string;
+  } | null;
+};

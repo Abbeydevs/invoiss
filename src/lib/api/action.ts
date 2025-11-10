@@ -1,6 +1,6 @@
 "use client";
 
-import { Customer, BankAccount } from "@/lib/types";
+import { Customer, BankAccount, Invoice } from "@/lib/types";
 import { CustomerFormValues } from "@/lib/validators/customer.schema";
 
 export async function getCustomers(): Promise<Customer[]> {
@@ -28,4 +28,11 @@ export async function createCustomer(
     throw new Error(error.error || "Failed to create customer");
   }
   return response.json();
+}
+
+export async function getInvoices(): Promise<Invoice[]> {
+  const response = await fetch("/api/invoices");
+  if (!response.ok) throw new Error("Failed to fetch invoices");
+  const data = await response.json();
+  return data.invoices;
 }
