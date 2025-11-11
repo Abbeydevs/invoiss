@@ -34,12 +34,9 @@ export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Empty space for future elements */}
         <div className="flex-1" />
 
-        {/* Right Section */}
         <div className="flex items-center gap-3">
-          {/* Create Invoice Button */}
           <Button
             onClick={() => router.push("/dashboard/invoices/new")}
             className="bg-[#1451cb] hover:bg-[#1451cb]/90 text-white shadow-lg shadow-blue-500/20"
@@ -47,7 +44,6 @@ export function DashboardHeader() {
             Create Invoice
           </Button>
 
-          {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -64,7 +60,6 @@ export function DashboardHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* User Menu */}
           <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

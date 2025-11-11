@@ -23,6 +23,15 @@ export const invoiceSchema = z.object({
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
   bankAccountId: z.string().min(1, "Bank account is required"),
+  templateId: z.string().min(1, "A template is required"),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+
+export const updateInvoiceSchema = invoiceSchema.partial().extend({
+  subtotal: z.number().optional(),
+  taxAmount: z.number().optional(),
+  discountAmount: z.number().optional(),
+  totalAmount: z.number().optional(),
+  balanceDue: z.number().optional(),
+});

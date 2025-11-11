@@ -1,6 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Customer, BankAccount, Invoice } from "@/lib/types";
+import {
+  Customer,
+  BankAccount,
+  Invoice,
+  Template,
+  InvoiceDetail,
+} from "@/lib/types";
 import { CustomerFormValues } from "@/lib/validators/customer.schema";
 
 export async function getCustomers(): Promise<Customer[]> {
@@ -35,4 +42,32 @@ export async function getInvoices(): Promise<Invoice[]> {
   if (!response.ok) throw new Error("Failed to fetch invoices");
   const data = await response.json();
   return data.invoices;
+}
+
+export async function getTemplates(): Promise<{
+  defaultTemplates: Template[];
+  customTemplates: Template[];
+}> {
+  const response = await fetch("/api/templates");
+  if (!response.ok) throw new Error("Failed to fetch templates");
+  return response.json();
+}
+
+export async function getInvoiceById(id: string): Promise<InvoiceDetail> {
+  const response = await fetch(`/api/invoices/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch invoice details");
+  }
+  return response.json();
+}
+
+export async function deleteInvoice(id: string): Promise<any> {
+  const response = await fetch(`/api/invoices/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete invoice");
+  }
+  return response.json();
 }

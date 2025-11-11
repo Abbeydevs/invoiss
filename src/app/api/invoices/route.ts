@@ -31,6 +31,7 @@ const createInvoiceSchema = z.object({
   notes: z.string().optional(),
   bankAccountId: z.string(),
   status: z.enum(["DRAFT", "SENT"]).default("DRAFT"),
+  templateId: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
         invoiceNumber,
         customerId: validatedData.customerId,
         bankAccountId: validatedData.bankAccountId,
+        templateId: validatedData.templateId,
         invoiceDate: validatedData.invoiceDate,
         dueDate: validatedData.dueDate,
         billToName: validatedData.billToName,
@@ -158,7 +160,7 @@ export async function GET() {
       },
       include: {
         customer: true,
-        items: true,
+        items: false,
       },
       orderBy: {
         createdAt: "desc",

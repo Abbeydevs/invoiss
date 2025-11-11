@@ -6,6 +6,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import {
   Form,
   FormControl,
@@ -52,27 +53,38 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { Calendar } from "../ui/calendar";
-import { BankAccount } from "@/lib/types";
-
+import { Customer, BankAccount } from "@/lib/types";
+import {
+  getCustomers,
+  getBankAccounts,
+  createCustomer,
+  getTemplates,
+  getInvoiceById,
+} from "@/lib/api/action";
 import {
   invoiceSchema,
   InvoiceFormValues,
 } from "@/lib/validators/invoice.schema";
 import { CustomerForm } from "../customers/CustomerForm";
-import {
-  createCustomer,
-  getBankAccounts,
-  getCustomers,
-} from "@/lib/api/action";
+import { FormSkeleton } from "../common/SkeletonLoader";
 
-export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
+interface InvoiceFormProps {
+  templateId?: string;
+  invoiceId?: string;
+}
+
+export function InvoiceForm({ templateId, invoiceId }: InvoiceFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerComboboxOpen, setCustomerComboboxOpen] = useState(false);
+
+  const isEditMode = !!invoiceId;
 
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["customers"],
@@ -84,6 +96,17 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
     queryFn: getBankAccounts,
   });
 
+  const { data: templateData, isLoading: isLoadingTemplates } = useQuery({
+    queryKey: ["templates"],
+    queryFn: getTemplates,
+  });
+
+  const { data: existingInvoice, isLoading: isLoadingInvoice } = useQuery({
+    queryKey: ["invoice", invoiceId],
+    queryFn: () => getInvoiceById(invoiceId as string),
+    enabled: isEditMode,
+  });
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
@@ -92,24 +115,67 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
       taxRate: 0,
       discountValue: 0,
+      templateId: templateId,
     },
   });
 
-  const { setValue } = form;
+  const { setValue, reset, control, watch } = form;
 
   useEffect(() => {
-    if (bankAccounts && bankAccounts.length > 0) {
-      const defaultAccount = bankAccounts.find((acc) => acc.isDefault);
-      if (defaultAccount) {
-        setValue("bankAccountId", defaultAccount.id);
-      } else {
-        setValue("bankAccountId", bankAccounts[0].id);
+    if (isEditMode && existingInvoice) {
+      reset({
+        billToName: existingInvoice.billToName,
+        billToEmail: existingInvoice.billToEmail,
+        invoiceDate: new Date(existingInvoice.invoiceDate),
+        dueDate: new Date(existingInvoice.dueDate),
+        items: existingInvoice.items.map((item) => ({
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        })),
+        bankAccountId: existingInvoice.bankAccount?.id,
+        templateId: existingInvoice.template?.id,
+
+        customerId: existingInvoice.customer?.id ?? undefined,
+        billToPhone: existingInvoice.billToPhone ?? undefined,
+        billToAddress: existingInvoice.billToAddress ?? undefined,
+        taxRate: existingInvoice.taxRate ?? undefined,
+        discountType: existingInvoice.discountType ?? undefined,
+        discountValue: existingInvoice.discountValue ?? undefined,
+        paymentTerms: existingInvoice.paymentTerms ?? undefined,
+        notes: existingInvoice.notes ?? undefined,
+      });
+    }
+  }, [isEditMode, existingInvoice, reset]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      if (bankAccounts && bankAccounts.length > 0) {
+        const defaultAccount = bankAccounts.find((acc) => acc.isDefault);
+        setValue("bankAccountId", defaultAccount?.id || bankAccounts[0].id);
+      }
+      if (
+        templateId &&
+        templateData?.defaultTemplates &&
+        templateData.defaultTemplates.length > 0
+      ) {
+        if (templateId === "custom") {
+          const classic = templateData.defaultTemplates.find(
+            (t) => t.id === "classic"
+          );
+          setValue(
+            "templateId",
+            classic?.id || templateData.defaultTemplates[0].id
+          );
+        } else {
+          setValue("templateId", templateId);
+        }
       }
     }
-  }, [bankAccounts, setValue]);
+  }, [isEditMode, bankAccounts, templateData, templateId, setValue]);
 
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
+    control,
     name: "items",
   });
 
@@ -134,26 +200,50 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
   const onSubmit = async (data: InvoiceFormValues) => {
     setIsSubmitting(true);
     const totals = calculateTotals();
+
+    const payload = {
+      ...data,
+      status: "DRAFT",
+      subtotal: totals.subtotal,
+      taxAmount: totals.taxAmount,
+      discountAmount: totals.discountAmount,
+      totalAmount: totals.total,
+      balanceDue: totals.total,
+    };
+
     try {
-      const response = await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          status: isDraft ? "DRAFT" : "SENT",
-          subtotal: totals.subtotal,
-          taxAmount: totals.taxAmount,
-          discountAmount: totals.discountAmount,
-          totalAmount: totals.total,
-          balanceDue: totals.total,
-        }),
+      let result;
+      if (isEditMode) {
+        const response = await fetch(`/api/invoices/${invoiceId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to update invoice");
+        }
+        result = await response.json();
+        toast.success("Draft updated! Redirecting to preview...");
+      } else {
+        const response = await fetch("/api/invoices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to create invoice");
+        }
+        result = await response.json();
+        toast.success("Draft saved! Redirecting to preview...");
+      }
+
+      router.push(`/dashboard/invoices/${result.invoice.id}`);
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({
+        queryKey: ["invoice", result.invoice.id],
       });
-      if (!response.ok) throw new Error("Failed to create invoice");
-      await response.json();
-      toast.success(
-        isDraft ? "Invoice saved as draft" : "Invoice created successfully!"
-      );
-      router.push(`/dashboard/invoices`);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -164,10 +254,10 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
   };
 
   const calculateTotals = () => {
-    const items = form.watch("items");
-    const taxRate = form.watch("taxRate") || 0;
-    const discountType = form.watch("discountType");
-    const discountValue = form.watch("discountValue") || 0;
+    const items = watch("items");
+    const taxRate = watch("taxRate") || 0;
+    const discountType = watch("discountType");
+    const discountValue = watch("discountValue") || 0;
     const subtotal = items.reduce((sum, item) => {
       return sum + (item.quantity || 0) * (item.unitPrice || 0);
     }, 0);
@@ -183,6 +273,20 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
   };
 
   const totals = calculateTotals();
+
+  const availableTemplates = [
+    ...(templateData?.defaultTemplates || []),
+    ...(templateData?.customTemplates || []),
+  ].filter((template) => {
+    if (session?.user?.planType === "PRO") {
+      return true;
+    }
+    return !template.isPremium;
+  });
+
+  if (isEditMode && isLoadingInvoice) {
+    return <FormSkeleton />;
+  }
 
   return (
     <Form {...form}>
@@ -238,8 +342,9 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                               {isLoadingCustomers && "Loading customers..."}
                               {!isLoadingCustomers &&
                                 (field.value
-                                  ? customers?.find((c) => c.id === field.value)
-                                      ?.name
+                                  ? customers?.find(
+                                      (c: Customer) => c.id === field.value
+                                    )?.name
                                   : "Select customer")}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
@@ -251,7 +356,7 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                             <CommandEmpty>No customers found.</CommandEmpty>
                             <CommandList>
                               <CommandGroup>
-                                {customers?.map((customer) => (
+                                {customers?.map((customer: Customer) => (
                                   <CommandItem
                                     value={customer.name}
                                     key={customer.id}
@@ -296,9 +401,7 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                     </FormItem>
                   )}
                 />
-
                 <Separator />
-
                 <FormField
                   control={form.control}
                   name="billToName"
@@ -599,9 +702,7 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                     </FormItem>
                   )}
                 />
-
                 <Separator />
-
                 <FormField
                   control={form.control}
                   name="bankAccountId"
@@ -638,6 +739,71 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                 />
               </CardContent>
             </Card>
+
+            {isEditMode ? (
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Template</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    readOnly
+                    value={
+                      templateData?.defaultTemplates.find(
+                        (t) => t.id === existingInvoice?.template?.id
+                      )?.name || "Custom"
+                    }
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Template</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="templateId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Invoice Design</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingTemplates}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  isLoadingTemplates
+                                    ? "Loading templates..."
+                                    : "Select a design"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableTemplates.map((template) => (
+                              <SelectItem key={template.id} value={template.id}>
+                                <div className="flex items-center gap-2">
+                                  {template.name}
+                                  {template.isPremium && (
+                                    <Sparkles className="h-4 w-4 text-yellow-500" />
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="border-0 shadow-lg">
               <CardHeader>
@@ -756,25 +922,13 @@ export function InvoiceForm({ isDraft = false }: { isDraft?: boolean }) {
                 type="submit"
                 className="w-full bg-[#1451cb] hover:bg-[#1451cb]/90"
                 disabled={isSubmitting}
-                onClick={() => (isDraft = false)}
               >
-                {isSubmitting && !isDraft ? (
+                {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : isEditMode ? (
+                  "Save Changes & Preview"
                 ) : (
-                  "Create Invoice"
-                )}
-              </Button>
-              <Button
-                type="submit"
-                variant="outline"
-                className="w-full"
-                onClick={() => (isDraft = true)}
-                disabled={isSubmitting}
-              >
-                {isSubmitting && isDraft ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  "Save as Draft"
+                  "Save & Preview"
                 )}
               </Button>
             </div>
