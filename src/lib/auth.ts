@@ -46,7 +46,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password");
         }
 
-        // Return user object
         return {
           id: user.id,
           email: user.email,
@@ -58,12 +57,23 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.planType = user.planType;
         token.accountType = user.accountType;
       }
+
+      if (trigger === "update") {
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+        });
+
+        if (freshUser) {
+          token.planType = freshUser.planType;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

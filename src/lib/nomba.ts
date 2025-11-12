@@ -1,12 +1,7 @@
 import { z } from "zod";
+import crypto from "crypto";
 
 export async function getNombaAccessToken() {
-  console.log("--- DEBUGGING NOMBA AUTH ---");
-  console.log("Raw ENV NOMBA_BASE_URL:", process.env.NOMBA_BASE_URL);
-  console.log("Raw ENV NOMBA_CLIENT_ID:", process.env.NOMBA_CLIENT_ID);
-  console.log("Raw ENV HAS_PRIVATE_KEY:", !!process.env.NOMBA_PRIVATE_KEY);
-  console.log("Raw ENV NOMBA_ACCOUNT_ID:", process.env.NOMBA_ACCOUNT_ID);
-
   const url = `${process.env.NOMBA_BASE_URL}/v1/auth/token/issue`;
 
   console.log("Trying to fetch this URL:", url);
@@ -65,3 +60,18 @@ export const verifyAccountSchema = z.object({
   accountNumber: z.string().length(10),
 });
 export type VerifyAccountPayload = z.infer<typeof verifyAccountSchema>;
+
+export function verifyWebhookSignature(
+  payload: string,
+  signature: string
+): boolean {
+  const privateKey = process.env.NOMBA_PRIVATE_KEY;
+  if (!privateKey) return false;
+
+  const hash = crypto
+    .createHmac("sha512", privateKey)
+    .update(payload)
+    .digest("hex");
+
+  return hash === signature;
+}
