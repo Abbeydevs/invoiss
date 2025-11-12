@@ -3,7 +3,14 @@
 import { useSession } from "next-auth/react";
 import { InvoiceDetail } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Download, Send, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import {
+  Download,
+  Send,
+  Loader2,
+  ArrowLeft,
+  CheckCircle,
+  Banknote,
+} from "lucide-react";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +19,7 @@ import { UpgradeModal } from "@/components/billing/UpgradeModal";
 import { useRouter } from "next/navigation";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
+import { RecordPaymentModal } from "./RecordPaymentModal";
 
 interface InvoiceActionsProps {
   invoice: InvoiceDetail;
@@ -50,6 +58,12 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
 
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const canRecordPayment =
+    invoice.status !== "DRAFT" &&
+    invoice.status !== "CANCELLED" &&
+    invoice.balanceDue > 0;
 
   const sendMutation = useMutation({
     mutationFn: sendInvoice,
@@ -161,6 +175,18 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap justify-center">
+            {canRecordPayment && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="text-green-700 border-green-200 hover:bg-green-50"
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                Record Payment
+              </Button>
+            )}
+
             {invoice.status === "DRAFT" && (
               <Button
                 variant="outline"
@@ -209,6 +235,14 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
           </div>
         </div>
       </div>
+
+      <RecordPaymentModal
+        open={isPaymentModalOpen}
+        onOpenChange={setIsPaymentModalOpen}
+        invoiceId={invoice.id}
+        balanceDue={invoice.balanceDue}
+        invoiceNumber={invoice.invoiceNumber}
+      />
 
       <UpgradeModal
         open={isUpgradeModalOpen}
