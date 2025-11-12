@@ -7,6 +7,7 @@ import {
   Invoice,
   Template,
   InvoiceDetail,
+  DashboardStats,
 } from "@/lib/types";
 import { CustomerFormValues } from "@/lib/validators/customer.schema";
 
@@ -69,5 +70,11 @@ export async function deleteInvoice(id: string): Promise<any> {
     const error = await response.json();
     throw new Error(error.error || "Failed to delete invoice");
   }
+  return response.json();
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const response = await fetch("/api/analytics");
+  if (!response.ok) throw new Error("Failed to fetch dashboard stats");
   return response.json();
 }

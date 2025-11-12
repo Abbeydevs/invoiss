@@ -82,3 +82,11 @@ export type InvoiceDetail = Invoice & {
   discountType: "PERCENTAGE" | "FIXED" | null;
   discountValue: number | null;
 };
+
+export type DashboardStats = {
+  totalInvoices: number;
+  totalCustomers: number;
+  totalRevenue: number;
+  totalPending: number;
+  recentInvoices: Invoice[];
+};
