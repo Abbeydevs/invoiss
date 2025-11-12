@@ -77,6 +77,36 @@ export async function POST(
         },
       });
 
+      await tx.wallet.upsert({
+        where: { userId: session.user.id },
+        update: {
+          balance: { increment: validatedData.amount },
+          totalReceived: { increment: validatedData.amount },
+          transactions: {
+            create: {
+              type: "CREDIT",
+              amount: validatedData.amount,
+              description: `Payment for Invoice #${invoice.invoiceNumber}`,
+              reference: invoiceId,
+            },
+          },
+        },
+        create: {
+          userId: session.user.id,
+          balance: validatedData.amount,
+          totalReceived: validatedData.amount,
+          totalPending: 0,
+          transactions: {
+            create: {
+              type: "CREDIT",
+              amount: validatedData.amount,
+              description: `Payment for Invoice #${invoice.invoiceNumber}`,
+              reference: invoiceId,
+            },
+          },
+        },
+      });
+
       return { payment, updatedInvoice };
     });
 

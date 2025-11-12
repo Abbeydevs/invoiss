@@ -90,3 +90,20 @@ export type DashboardStats = {
   totalPending: number;
   recentInvoices: Invoice[];
 };
+
+export type WalletTransaction = {
+  id: string;
+  amount: number;
+  type: "CREDIT" | "DEBIT";
+  description: string;
+  reference?: string | null;
+  createdAt: string;
+};
+
+export type Wallet = {
+  id: string;
+  balance: number;
+  totalReceived: number;
+  totalPending: number;
+  transactions: WalletTransaction[];
+};
