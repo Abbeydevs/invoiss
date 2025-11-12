@@ -1,6 +1,28 @@
 import { z } from "zod";
 import crypto from "crypto";
 
+interface NombaWebhookPayload {
+  event_type: string;
+  requestId: string;
+  data: {
+    merchant: {
+      userId: string;
+      walletId: string;
+      walletBalance?: number;
+    };
+    transaction: {
+      transactionId: string;
+      type: string;
+      time: string;
+      responseCode: string;
+      sessionID?: string;
+      amount?: number;
+      merchantReference?: string;
+      orderReference?: string;
+    };
+  };
+}
+
 export async function getNombaAccessToken() {
   const url = `${process.env.NOMBA_BASE_URL}/v1/auth/token/issue`;
 
@@ -62,16 +84,34 @@ export const verifyAccountSchema = z.object({
 export type VerifyAccountPayload = z.infer<typeof verifyAccountSchema>;
 
 export function verifyWebhookSignature(
-  payload: string,
-  signature: string
+  payload: NombaWebhookPayload,
+  signature: string,
+  timestamp: string
 ): boolean {
-  const privateKey = process.env.NOMBA_PRIVATE_KEY;
-  if (!privateKey) return false;
+  const secret =
+    process.env.NOMBA_WEBHOOK_SECRET || process.env.NOMBA_PRIVATE_KEY;
+  if (!secret) return false;
+
+  const eventType = payload.event_type;
+  const requestId = payload.requestId;
+  const userId = payload.data?.merchant?.userId;
+  const walletId = payload.data?.merchant?.walletId;
+  const transactionId = payload.data?.transaction?.transactionId;
+  const type = payload.data?.transaction?.type;
+  const time = payload.data?.transaction?.time;
+  const responseCode = payload.data?.transaction?.responseCode || "";
+
+  const stringToSign = `${eventType}:${requestId}:${userId}:${walletId}:${transactionId}:${type}:${time}:${responseCode}:${timestamp}`;
+
+  console.log("Constructed String to Sign:", stringToSign);
 
   const hash = crypto
-    .createHmac("sha512", privateKey)
-    .update(payload)
-    .digest("hex");
+    .createHmac("sha256", secret)
+    .update(stringToSign)
+    .digest("base64");
+
+  console.log("Calculated Hash:", hash);
+  console.log("Nomba Signature:", signature);
 
   return hash === signature;
 }

@@ -6,32 +6,41 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const signature = request.headers.get("x-nomba-signature");
-    if (!signature) {
-      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    const signature = request.headers.get("nomba-signature");
+    const timestamp = request.headers.get("nomba-timestamp");
+
+    console.log("--- WEBHOOK POST RECEIVED ---");
+
+    if (!signature || !timestamp) {
+      console.error("Webhook Error: Missing Nomba headers");
+      return NextResponse.json({ error: "Missing headers" }, { status: 401 });
     }
 
-    const rawBody = await request.text();
+    const payload = await request.json();
 
-    const isValid = verifyWebhookSignature(rawBody, signature);
+    const isValid = verifyWebhookSignature(payload, signature, timestamp);
+
     if (!isValid) {
-      console.error("Webhook: Invalid signature attempt");
+      console.error("Webhook Error: Invalid signature.");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payload = JSON.parse(rawBody);
-    const eventType = payload.event;
+    if (
+      payload.event_type === "payment_success" ||
+      payload.event_type === "checkout.successful"
+    ) {
+      const orderReference =
+        payload.data?.transaction?.merchantReference ||
+        payload.data?.transaction?.orderReference ||
+        payload.data?.orderReference;
 
-    console.log(`Webhook Received: ${eventType}`);
-
-    if (eventType === "checkout.successful" || eventType === "charge.success") {
-      const orderReference = payload.data.orderReference;
+      console.log("Processing Order Ref:", orderReference);
 
       if (orderReference) {
         const parts = orderReference.split("-");
-        const userId = parts[1];
+        if (parts[0] === "SUB" && parts[1]) {
+          const userId = parts[1];
 
-        if (userId) {
           await prisma.user.update({
             where: { id: userId },
             data: {
