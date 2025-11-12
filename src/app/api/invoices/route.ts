@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     const lastInvoice = await prisma.invoice.findFirst({
       where: {
-        userId: session.user.id,
+        // userId: session.user.id,
         invoiceNumber: {
           startsWith: prefix,
         },

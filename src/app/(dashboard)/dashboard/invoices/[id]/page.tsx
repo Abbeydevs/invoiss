@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { getInvoiceById } from "@/lib/api/action";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { InvoiceActions } from "@/components/invoice/InvoiceActions";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { PageSkeleton } from "@/components/common/SkeletonLoader";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -24,35 +25,33 @@ export default function InvoiceDetailPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Loading Invoice..." subtitle="Please wait...">
+      <div className="flex items-center justify-center min-h-screen">
         <PageSkeleton />
-      </DashboardLayout>
+      </div>
     );
   }
 
-  if (error) {
+  if (error || !invoice) {
     return (
-      <DashboardLayout title="Error" subtitle="Failed to load invoice">
-        <p className="text-center text-red-500">{error.message}</p>
-      </DashboardLayout>
-    );
-  }
-
-  if (!invoice) {
-    return (
-      <DashboardLayout title="Not Found" subtitle="Invoice not found">
-        <p className="text-center">This invoice could not be found.</p>
-      </DashboardLayout>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <h1 className="text-xl font-semibold">Error</h1>
+        <p className="text-center text-red-500">
+          {error?.message || "Invoice not found."}
+        </p>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/invoices">Back to Invoices</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout title="Invoice Preview" subtitle={invoice.invoiceNumber}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <InvoiceActions invoice={invoice} />
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <InvoiceActions invoice={invoice} />
 
+      <div className="p-4 md:p-8">
         <InvoicePreview invoice={invoice} />
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

@@ -7,30 +7,36 @@ async function main() {
 
   await prisma.template.upsert({
     where: { id: "classic" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1762949407/classic-preview_xj9cqg.png",
+    },
     create: {
       id: "classic",
       name: "Classic",
       isDefault: true,
       isPremium: false,
-      design: {
-        layout: "classic-v1",
-      },
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1762949407/classic-preview_xj9cqg.png",
+      design: { layout: "classic-v1" },
       userId: null,
     },
   });
 
   await prisma.template.upsert({
     where: { id: "modern" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1762949477/modern-preview_ktyoh7.png",
+    },
     create: {
       id: "modern",
       name: "Modern",
       isDefault: false,
       isPremium: false,
-      design: {
-        layout: "modern-v1",
-      },
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1762949477/modern-preview_ktyoh7.png",
+      design: { layout: "modern-v1" },
       userId: null,
     },
   });
@@ -43,9 +49,7 @@ async function main() {
       name: "Elegant (Pro)",
       isDefault: false,
       isPremium: true,
-      design: {
-        layout: "elegant-v1",
-      },
+      design: { layout: "elegant-v1" },
       userId: null,
     },
   });
