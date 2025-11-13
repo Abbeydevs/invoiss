@@ -4,6 +4,7 @@ import "./globals.css";
 import Sessionprovider from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { cn } from "@/lib/utils";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
@@ -22,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={albertSans.className}>
+      <body className={cn(albertSans.className, "tracking-tighter")}>
         <QueryProvider>
           <Sessionprovider>{children}</Sessionprovider>
         </QueryProvider>
