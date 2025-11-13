@@ -33,6 +33,12 @@ export const invoiceSchema = z.object({
   templateId: z.string().min(1, "A template is required"),
   hasPaymentSchedule: z.boolean().optional(),
   milestones: z.array(milestoneSchema).optional(),
+  // Calculated totals (kept optional for client-side form state)
+  subtotal: z.number().optional(),
+  taxAmount: z.number().optional(),
+  discountAmount: z.number().optional(),
+  totalAmount: z.number().optional(),
+  balanceDue: z.number().optional(),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;

@@ -26,9 +26,29 @@ export function BillingModal({ open, onOpenChange }: BillingModalProps) {
 
   const handleUpgrade = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/billing/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval: isYearly ? "YEARLY" : "MONTHLY" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start subscription");
+      }
+
+      const data = await response.json();
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please try again.");
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   if (!open) return null;

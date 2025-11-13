@@ -59,11 +59,41 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const mockUrl = URL.createObjectURL(file);
-      onChange(mockUrl);
+    try {
+      const response = await fetch("/api/upload", { method: "POST" });
+      if (!response.ok) {
+        throw new Error("Failed to get upload signature");
+      }
+      const data = await response.json();
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", data.apiKey);
+      formData.append("signature", data.signature);
+      formData.append("timestamp", data.timestamp);
+      formData.append("folder", data.folder);
+      formData.append("upload_preset", "invoiss_preset");
+
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${data.cloudName}/image/upload`;
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      onChange(uploadData.secure_url);
+    } catch (error) {
+      console.error(error);
+      onChange("");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const removeImage = (e: React.MouseEvent) => {

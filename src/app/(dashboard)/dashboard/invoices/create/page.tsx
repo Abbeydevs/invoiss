@@ -44,21 +44,21 @@ function CreateInvoicePageContent() {
       taxRate: 0,
       discountValue: 0,
       templateId: templateId || undefined,
-      // hasPaymentSchedule: false,
+      hasPaymentSchedule: false,
     },
   });
 
-  const { data: customers } = useQuery({
+  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["customers"],
     queryFn: getCustomers,
   });
 
-  const { data: bankAccounts } = useQuery({
+  const { data: bankAccounts, isLoading: isLoadingBanks } = useQuery({
     queryKey: ["bankAccounts"],
     queryFn: getBankAccounts,
   });
 
-  const { data: templateData } = useQuery({
+  const { data: templateData, isLoading: isLoadingTemplates } = useQuery({
     queryKey: ["templates"],
     queryFn: getTemplates,
   });
@@ -71,7 +71,6 @@ function CreateInvoicePageContent() {
 
   useEffect(() => {
     if (isEditMode && existingInvoice) {
-      // Manually map fields to avoid type errors (null vs undefined)
       form.reset({
         billToName: existingInvoice.billToName,
         billToEmail: existingInvoice.billToEmail,
@@ -194,7 +193,12 @@ function CreateInvoicePageContent() {
     }
   };
 
-  if (isLoadingInvoice) {
+  if (
+    isLoadingInvoice ||
+    isLoadingCustomers ||
+    isLoadingBanks ||
+    isLoadingTemplates
+  ) {
     return (
       <div className="p-8">
         <FormSkeleton />
@@ -230,13 +234,18 @@ function CreateInvoicePageContent() {
     })),
     payments: existingInvoice?.payments || [],
     profile: existingInvoice?.profile || null,
-    customer: customers?.find((c) => c.id === watchedData.customerId) || null,
-    bankAccount:
-      bankAccounts?.find((b) => b.id === watchedData.bankAccountId) || null,
-    template:
-      templateData?.defaultTemplates.find(
-        (t) => t.id === watchedData.templateId
-      ) || null,
+    customer: Array.isArray(customers)
+      ? customers.find((c) => c.id === watchedData.customerId) || null
+      : null,
+    bankAccount: Array.isArray(bankAccounts)
+      ? bankAccounts.find((b) => b.id === watchedData.bankAccountId) || null
+      : null,
+
+    template: Array.isArray(templateData?.defaultTemplates)
+      ? templateData?.defaultTemplates.find(
+          (t) => t.id === watchedData.templateId
+        ) || null
+      : null,
     balanceDue: totals.totalAmount,
   } as InvoiceDetail;
 

@@ -99,6 +99,7 @@ export function MilestoneManager() {
                     )}
                   />
 
+                  {/* Amount */}
                   <FormField
                     control={control}
                     name={`milestones.${index}.amount`}
@@ -121,6 +122,7 @@ export function MilestoneManager() {
                 </div>
 
                 <div className="flex gap-3 items-end">
+                  {/* Date */}
                   <FormField
                     control={control}
                     name={`milestones.${index}.dueDate`}
