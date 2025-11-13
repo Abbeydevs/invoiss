@@ -49,11 +49,10 @@ import {
   Trash2,
   ChevronsUpDown,
   Check,
-  Loader2,
   Sparkles,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Customer, BankAccount, Template } from "@/lib/types";
+import { Customer, BankAccount } from "@/lib/types";
 import {
   getCustomers,
   getBankAccounts,
@@ -67,16 +66,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { MilestoneManager } from "./MilestoneManager";
 
 interface InvoiceEditorFormProps {
   form: UseFormReturn<InvoiceFormValues>;
   isSubmitting: boolean;
 }
 
-export function InvoiceEditorForm({
-  form,
-  isSubmitting,
-}: InvoiceEditorFormProps) {
+export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
@@ -591,6 +588,8 @@ export function InvoiceEditorForm({
             </div>
           </CardContent>
         </Card>
+
+        <MilestoneManager />
 
         <Card className="border-0 shadow-lg">
           <CardHeader>

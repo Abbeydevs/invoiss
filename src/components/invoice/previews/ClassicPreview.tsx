@@ -216,6 +216,62 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
+      {invoice.hasPaymentSchedule &&
+        invoice.paymentMilestones &&
+        invoice.paymentMilestones.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-slate-200">
+            <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">
+              Payment Schedule
+            </h4>
+            <div className="overflow-hidden rounded-lg border border-slate-200">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="py-3 px-4 font-bold text-xs text-slate-500 uppercase tracking-wider">
+                      Milestone
+                    </th>
+                    <th className="py-3 px-4 font-bold text-xs text-slate-500 uppercase tracking-wider text-right">
+                      Due Date
+                    </th>
+                    <th className="py-3 px-4 font-bold text-xs text-slate-500 uppercase tracking-wider text-right">
+                      Status
+                    </th>
+                    <th className="py-3 px-4 font-bold text-xs text-slate-500 uppercase tracking-wider text-right">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {invoice.paymentMilestones.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50/50">
+                      <td className="py-3 px-4 font-medium text-slate-800 text-sm">
+                        {m.name}
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-600 text-sm">
+                        {format(new Date(m.dueDate), "MMM d, yyyy")}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                            m.status === "PAID"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {m.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 text-sm">
+                        {formatCurrency(m.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       <div className="mt-12 pt-8 border-t border-slate-200 text-center">
         <p className="text-slate-500 text-sm">Thank you for your business!</p>
       </div>

@@ -197,9 +197,27 @@ export function InvoiceForm({ templateId, invoiceId }: InvoiceFormProps) {
     },
   });
 
+  // Onsubmit function
   const onSubmit = async (data: InvoiceFormValues) => {
     setIsSubmitting(true);
     const totals = calculateTotals();
+
+    if (data.hasPaymentSchedule && data.milestones) {
+      const milestoneTotal = data.milestones.reduce(
+        (sum, m) => sum + (m.amount || 0),
+        0
+      );
+
+      const difference = Math.abs(totals.totalAmount - milestoneTotal);
+
+      if (difference > 1) {
+        toast.error("Payment Schedule Mismatch", {
+          description: `Your milestones total (₦${milestoneTotal.toLocaleString()}) does not match the invoice total (₦${totals.totalAmount.toLocaleString()}). Please fix the amounts.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     const payload = {
       ...data,
@@ -207,8 +225,8 @@ export function InvoiceForm({ templateId, invoiceId }: InvoiceFormProps) {
       subtotal: totals.subtotal,
       taxAmount: totals.taxAmount,
       discountAmount: totals.discountAmount,
-      totalAmount: totals.total,
-      balanceDue: totals.total,
+      totalAmount: totals.totalAmount,
+      balanceDue: totals.totalAmount,
     };
 
     try {
@@ -268,8 +286,8 @@ export function InvoiceForm({ templateId, invoiceId }: InvoiceFormProps) {
     } else if (discountType === "FIXED") {
       discountAmount = discountValue;
     }
-    const total = subtotal + taxAmount - discountAmount;
-    return { subtotal, taxAmount, discountAmount, total };
+    const totalAmount = subtotal + taxAmount - discountAmount;
+    return { subtotal, taxAmount, discountAmount, totalAmount };
   };
 
   const totals = calculateTotals();
@@ -911,7 +929,7 @@ export function InvoiceForm({ templateId, invoiceId }: InvoiceFormProps) {
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
                   <span className="text-[#1451cb]">
-                    ₦{totals.total.toFixed(2)}
+                    ₦{totals.totalAmount.toFixed(2)}
                   </span>
                 </div>
               </CardContent>

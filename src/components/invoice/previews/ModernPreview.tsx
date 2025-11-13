@@ -21,8 +21,10 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
   };
 
   return (
-    <div className="flex flex-row min-h-[1000px] font-sans bg-white">
-      <div className="w-[30%] bg-linear-to-br from-[#1451cb] via-[#1565d8] to-[#1451cb] text-white p-8 flex flex-col relative overflow-hidden">
+    <div className="flex flex-row min-h-[1123px] font-sans bg-white">
+      {/* Left Sidebar with Gradient and Shapes */}
+      <div className="w-[30%] bg-linear-to-br from-[#1451cb] via-[#1565d8] to-[#1451cb] text-white p-8 flex flex-col relative overflow-hidden print:bg-[#1451cb]">
+        {/* Decorative Circles */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
 
@@ -54,17 +56,17 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
             <p className="font-bold text-blue-100 text-[10px] uppercase tracking-wider mb-2">
               Bill To
             </p>
-            <h3 className="text-base font-bold text-white mb-2 wrap-break-words">
+            <h3 className="text-base font-bold text-white mb-2 wrap-break-word">
               {customer?.name || invoice.billToName}
             </h3>
             <div className="space-y-1 text-xs text-blue-100">
-              <p className="wrap-break-words">
+              <p className="wrap-break-word">
                 {customer?.email || invoice.billToEmail}
               </p>
-              <p className="wrap-break-words">
+              <p className="wrap-break-word">
                 {customer?.phone || invoice.billToPhone}
               </p>
-              <p className="leading-relaxed wrap-break-words">
+              <p className="leading-relaxed wrap-break-word">
                 {customer?.address || invoice.billToAddress}
               </p>
             </div>
@@ -91,7 +93,8 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
-      <div className="w-[65%] p-8 bg-gray-50">
+      {/* Right Content */}
+      <div className="w-[70%] p-8 bg-gray-50">
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">INVOICE</h1>
@@ -129,16 +132,16 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 index % 2 === 0 ? "bg-white" : "bg-gray-50"
               } ${index !== invoice.items.length - 1 ? "border-b border-gray-100" : ""}`}
             >
-              <div className="col-span-5 text-gray-800 font-medium text-[11px] wrap-break-words">
+              <div className="col-span-5 text-gray-800 font-medium text-[11px] wrap-break-word">
                 {item.description}
               </div>
               <div className="col-span-2 text-gray-700 text-center font-semibold text-[11px]">
                 {item.quantity}
               </div>
-              <div className="col-span-2 text-gray-600 text-right text-[11px] wrap-break-words">
+              <div className="col-span-2 text-gray-600 text-right text-[11px] wrap-break-word">
                 {formatCurrency(item.unitPrice)}
               </div>
-              <div className="col-span-3 text-gray-900 font-bold text-right text-[11px] wrap-break-words">
+              <div className="col-span-3 text-gray-900 font-bold text-right text-[11px] wrap-break-word">
                 {formatCurrency(item.amount)}
               </div>
             </div>
@@ -170,13 +173,11 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   </h4>
                 </div>
                 <div className="text-[11px] text-gray-700 space-y-0.5">
-                  <p className="font-semibold text-gray-900 wrap-break-words">
+                  <p className="font-semibold text-gray-900 wrap-break-word">
                     {bankAccount.bankName}
                   </p>
-                  <p className="wrap-break-words">
-                    {bankAccount.accountNumber}
-                  </p>
-                  <p className="wrap-break-words">{bankAccount.accountName}</p>
+                  <p className="wrap-break-word">{bankAccount.accountNumber}</p>
+                  <p className="wrap-break-word">{bankAccount.accountName}</p>
                 </div>
               </div>
             )}
@@ -186,7 +187,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 <h4 className="font-bold text-blue-900 mb-1.5 text-[10px] uppercase tracking-wider">
                   Notes
                 </h4>
-                <p className="text-[11px] text-blue-800 leading-relaxed wrap-break-words">
+                <p className="text-[11px] text-blue-800 leading-relaxed wrap-break-word">
                   {invoice.notes}
                 </p>
               </div>
@@ -197,7 +198,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 <h4 className="font-bold text-gray-900 mb-1.5 text-[10px] uppercase tracking-wider">
                   Payment Terms
                 </h4>
-                <p className="text-[11px] text-gray-700 leading-relaxed wrap-break-words">
+                <p className="text-[11px] text-gray-700 leading-relaxed wrap-break-word">
                   {invoice.paymentTerms}
                 </p>
               </div>
@@ -211,7 +212,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   <span className="font-medium text-[11px] text-gray-700">
                     Subtotal
                   </span>
-                  <span className="font-semibold text-[11px] text-gray-900 wrap-break-words text-right ml-2">
+                  <span className="font-semibold text-[11px] text-gray-900 wrap-break-word text-right ml-2">
                     {formatCurrency(invoice.subtotal)}
                   </span>
                 </div>
@@ -221,7 +222,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                     <span className="font-medium text-[11px] text-gray-700">
                       Tax ({invoice.taxRate}%)
                     </span>
-                    <span className="font-semibold text-[11px] text-gray-900 wrap-break-words text-right ml-2">
+                    <span className="font-semibold text-[11px] text-gray-900 wrap-break-word text-right ml-2">
                       {formatCurrency(invoice.taxAmount)}
                     </span>
                   </div>
@@ -232,7 +233,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                     <span className="font-medium text-[11px] text-gray-700">
                       Discount
                     </span>
-                    <span className="text-red-600 font-semibold text-[11px] wrap-break-words text-right ml-2">
+                    <span className="text-red-600 font-semibold text-[11px] wrap-break-word text-right ml-2">
                       -{formatCurrency(invoice.discountAmount)}
                     </span>
                   </div>
@@ -242,7 +243,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   <span className="text-base font-bold text-gray-900">
                     Total
                   </span>
-                  <span className="text-lg font-bold text-gray-900 wrap-break-words text-right ml-2">
+                  <span className="text-lg font-bold text-gray-900 wrap-break-word text-right ml-2">
                     {formatCurrency(invoice.totalAmount)}
                   </span>
                 </div>
@@ -251,7 +252,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
               <div className="bg-linear-to-r from-[#1451cb] to-[#1565d8] text-white p-4 rounded-xl mt-4 shadow-lg">
                 <div className="flex justify-between items-start">
                   <span className="font-bold text-xs">Amount Due</span>
-                  <span className="text-lg font-bold wrap-break-words text-right ml-2">
+                  <span className="text-lg font-bold wrap-break-word text-right ml-2">
                     {formatCurrency(invoice.balanceDue)}
                   </span>
                 </div>
@@ -259,6 +260,57 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
             </div>
           </div>
         </div>
+
+        {invoice.hasPaymentSchedule &&
+          invoice.paymentMilestones &&
+          invoice.paymentMilestones.length > 0 && (
+            <div className="mt-10">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                  <h4 className="font-bold text-gray-900 text-[10px] uppercase tracking-wider">
+                    Payment Schedule
+                  </h4>
+                </div>
+                <div className="p-2">
+                  {invoice.paymentMilestones.map((milestone, index) => (
+                    <div
+                      key={milestone.id}
+                      className={`flex items-center justify-between p-3 ${index !== invoice.paymentMilestones.length - 1 ? "border-b border-gray-100" : ""}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-2 h-2 rounded-full ${milestone.status === "PAID" ? "bg-green-500" : "bg-amber-400"}`}
+                        ></div>
+                        <div>
+                          <p className="text-[11px] font-bold text-gray-900">
+                            {milestone.name}
+                          </p>
+                          <p className="text-[10px] text-gray-500">
+                            Due:{" "}
+                            {format(new Date(milestone.dueDate), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] font-bold text-gray-900">
+                          {formatCurrency(milestone.amount)}
+                        </p>
+                        <span
+                          className={`inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                            milestone.status === "PAID"
+                              ? "bg-green-50 text-green-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}
+                        >
+                          {milestone.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
         <div className="mt-8 pt-5 border-t border-gray-200 text-center">
           <p className="text-gray-600 text-xs font-medium">

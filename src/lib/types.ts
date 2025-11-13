@@ -1,3 +1,5 @@
+import { InvoicePayment } from "@prisma/client";
+
 export type BankAccount = {
   id: string;
   bankName: string;
@@ -56,6 +58,15 @@ export type Template = {
   thumbnail?: string | null;
 };
 
+export type PaymentMilestone = {
+  id: string;
+  name: string;
+  amount: number;
+  percentage: number | null;
+  dueDate: string;
+  status: "PENDING" | "PAID";
+};
+
 export type InvoiceDetail = Invoice & {
   items: {
     id: string;
@@ -72,6 +83,9 @@ export type InvoiceDetail = Invoice & {
     address: string | null;
     phone: string | null;
   } | null;
+  payments: InvoicePayment[];
+  paymentMilestones: PaymentMilestone[];
+  hasPaymentSchedule: boolean;
   subtotal: number;
   taxAmount: number | null;
   discountAmount: number | null;

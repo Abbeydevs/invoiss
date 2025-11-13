@@ -8,6 +8,13 @@ export const invoiceItemSchema = z.object({
   unitPrice: z.number().min(0, "Price must be positive"),
 });
 
+export const milestoneSchema = z.object({
+  name: z.string().min(1, "Milestone name is required"),
+  amount: z.number().min(0, "Amount must be positive"),
+  percentage: z.number().optional(),
+  dueDate: z.date(),
+});
+
 export const invoiceSchema = z.object({
   customerId: z.string().optional(),
   billToName: z.string().min(2, "Customer name is required"),
@@ -24,14 +31,33 @@ export const invoiceSchema = z.object({
   notes: z.string().optional(),
   bankAccountId: z.string().min(1, "Bank account is required"),
   templateId: z.string().min(1, "A template is required"),
+  hasPaymentSchedule: z.boolean().optional(),
+  milestones: z.array(milestoneSchema).optional(),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+export type PaymentMilestoneValues = z.infer<typeof milestoneSchema>;
 
-export const updateInvoiceSchema = invoiceSchema.partial().extend({
+export const invoiceApiSchema = invoiceSchema.extend({
+  invoiceDate: z.coerce.date(),
+  dueDate: z.coerce.date(),
+  milestones: z
+    .array(
+      z.object({
+        name: z.string(),
+        amount: z.number(),
+        percentage: z.number().optional(),
+        dueDate: z.coerce.date(),
+      })
+    )
+    .optional(),
+
   subtotal: z.number().optional(),
   taxAmount: z.number().optional(),
   discountAmount: z.number().optional(),
   totalAmount: z.number().optional(),
   balanceDue: z.number().optional(),
+  status: z.enum(["DRAFT", "SENT"]).optional(),
 });
+
+export const updateInvoiceApiSchema = invoiceApiSchema.partial();

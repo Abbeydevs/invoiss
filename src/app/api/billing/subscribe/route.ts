@@ -1,15 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getNombaAccessToken } from "@/lib/nomba";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const body = await request.json().catch(() => ({}));
+    const interval = body.interval || "MONTHLY";
+
+    const amount = interval === "YEARLY" ? "55000.00" : "5000.00";
+    const description = `Invoiss Pro Subscription (${interval === "YEARLY" ? "Yearly" : "Monthly"})`;
 
     const accessToken = await getNombaAccessToken();
     const accountId = process.env.NOMBA_ACCOUNT_ID;
@@ -34,10 +40,10 @@ export async function POST() {
           orderReference: orderReference,
           customerEmail: session.user.email,
           currency: "NGN",
-          amount: "5000.00",
+          amount: amount,
           callbackUrl: `${appUrl}/api/billing/webhook`,
           redirectUrl: `${appUrl}/dashboard/billing?success=true`,
-          description: "Invoiss Pro Subscription (Monthly)",
+          description: description,
         },
       }),
     });

@@ -31,6 +31,11 @@ export async function POST(
         id: invoiceId,
         userId: session.user.id,
       },
+      include: {
+        paymentMilestones: {
+          orderBy: { order: "asc" },
+        },
+      },
     });
 
     if (!invoice) {
@@ -76,6 +81,26 @@ export async function POST(
           paidAt: newStatus === "PAID" ? new Date() : undefined,
         },
       });
+
+      if (invoice.hasPaymentSchedule && invoice.paymentMilestones.length > 0) {
+        let fundsAvailable = newAmountPaid;
+
+        for (const milestone of invoice.paymentMilestones) {
+          if (fundsAvailable >= milestone.amount - 0.01) {
+            await tx.paymentMilestone.update({
+              where: { id: milestone.id },
+              data: { status: "PAID", paidAt: new Date() },
+            });
+
+            fundsAvailable -= milestone.amount;
+          } else {
+            await tx.paymentMilestone.update({
+              where: { id: milestone.id },
+              data: { status: "PENDING", paidAt: null },
+            });
+          }
+        }
+      }
 
       await tx.wallet.upsert({
         where: { userId: session.user.id },

@@ -3,35 +3,57 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+// import { invoiceApiSchema } from "@/lib/validators/invoice.schema";
 
-const invoiceItemSchema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unitPrice: z.number(),
-});
-
-const createInvoiceSchema = z.object({
+const localInvoiceApiSchema = z.object({
   customerId: z.string().optional(),
-  billToName: z.string(),
+  billToName: z.string().min(2),
   billToEmail: z.string().email(),
   billToPhone: z.string().optional(),
   billToAddress: z.string().optional(),
-  invoiceDate: z.string().transform((str) => new Date(str)),
-  dueDate: z.string().transform((str) => new Date(str)),
-  items: z.array(invoiceItemSchema),
-  subtotal: z.number(),
-  taxRate: z.number().optional(),
-  taxAmount: z.number().optional(),
+
+  // API receives strings, so we coerce them to dates
+  invoiceDate: z.coerce.date(),
+  dueDate: z.coerce.date(),
+
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1),
+        quantity: z.number().min(1),
+        unitPrice: z.number().min(0),
+      })
+    )
+    .min(1),
+
+  taxRate: z.number().min(0).optional(),
   discountType: z.enum(["PERCENTAGE", "FIXED"]).optional(),
-  discountValue: z.number().optional(),
-  discountAmount: z.number().optional(),
-  totalAmount: z.number(),
-  balanceDue: z.number(),
+  discountValue: z.number().min(0).optional(),
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
-  bankAccountId: z.string(),
-  status: z.enum(["DRAFT", "SENT"]).default("DRAFT"),
-  templateId: z.string().optional(),
+  bankAccountId: z.string().min(1),
+  templateId: z.string().min(1),
+
+  // Payment Schedule Fields
+  hasPaymentSchedule: z.boolean().optional(),
+  milestones: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        amount: z.number().min(0),
+        percentage: z.number().optional(),
+        dueDate: z.coerce.date(), // Coerce string to Date
+      })
+    )
+    .optional(),
+
+  // Calculated Fields
+  subtotal: z.number().optional(),
+  taxAmount: z.number().optional(),
+  discountAmount: z.number().optional(),
+  totalAmount: z.number().optional(),
+  balanceDue: z.number().optional(),
+  status: z.enum(["DRAFT", "SENT"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -43,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const validatedData = createInvoiceSchema.parse(body);
+    const validatedData = localInvoiceApiSchema.parse(body);
 
     const now = new Date();
     const year = now.getFullYear();
@@ -84,17 +106,18 @@ export async function POST(request: Request) {
         billToEmail: validatedData.billToEmail,
         billToPhone: validatedData.billToPhone,
         billToAddress: validatedData.billToAddress,
-        subtotal: validatedData.subtotal,
+        subtotal: validatedData.subtotal || 0,
         taxRate: validatedData.taxRate || 0,
         taxAmount: validatedData.taxAmount || 0,
         discountType: validatedData.discountType,
         discountValue: validatedData.discountValue || 0,
         discountAmount: validatedData.discountAmount || 0,
-        totalAmount: validatedData.totalAmount,
-        balanceDue: validatedData.balanceDue,
+        totalAmount: validatedData.totalAmount || 0,
+        balanceDue: validatedData.balanceDue || 0,
         paymentTerms: validatedData.paymentTerms,
         notes: validatedData.notes,
         status: validatedData.status,
+        hasPaymentSchedule: validatedData.hasPaymentSchedule,
         items: {
           create: validatedData.items.map((item, index) => ({
             description: item.description,
@@ -104,11 +127,25 @@ export async function POST(request: Request) {
             order: index,
           })),
         },
+        ...(validatedData.hasPaymentSchedule &&
+          validatedData.milestones && {
+            paymentMilestones: {
+              create: validatedData.milestones.map((milestone, index) => ({
+                name: milestone.name,
+                amount: milestone.amount,
+                percentage: milestone.percentage,
+                dueDate: milestone.dueDate,
+                order: index,
+                status: "PENDING",
+              })),
+            },
+          }),
       },
       include: {
         items: true,
         customer: true,
         bankAccount: true,
+        paymentMilestones: true,
       },
     });
 

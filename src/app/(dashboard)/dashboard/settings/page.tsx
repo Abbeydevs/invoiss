@@ -1,12 +1,30 @@
+/* eslint-disable jsx-a11y/alt-text */
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
+import {
+  Loader2,
+  Sparkles,
+  Crown,
+  CheckCircle2,
+  Building2,
+  Image,
+} from "lucide-react";
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,16 +35,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
 import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { ImageUpload } from "@/components/common/ImageUpload";
-import { Profile } from "@prisma/client";
-
-const profileFormSchema = z.object({
-  brandName: z.string().min(2, "Brand name must be at least 2 characters"),
-  logoUrl: z.string().url().nullable(),
-});
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+import { BillingModal } from "@/components/billing/BillingModal";
+import { Profile } from "@/lib/types";
 
 async function getProfile(): Promise<Profile> {
   const response = await fetch("/api/profile");
@@ -35,6 +49,13 @@ async function getProfile(): Promise<Profile> {
   }
   return response.json();
 }
+
+const profileFormSchema = z.object({
+  brandName: z.string().min(2, "Brand name must be at least 2 characters"),
+  logoUrl: z.string().url().nullable().optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 async function updateProfile(values: ProfileFormValues) {
   const response = await fetch("/api/profile", {
@@ -50,7 +71,11 @@ async function updateProfile(values: ProfileFormValues) {
 }
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const isPro = session?.user?.planType === "PRO";
+
+  const [showBillingModal, setShowBillingModal] = useState(false);
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile"],
@@ -63,13 +88,16 @@ export default function SettingsPage() {
       brandName: "",
       logoUrl: null,
     },
-    values: profile
-      ? {
-          brandName: profile.businessName || "",
-          logoUrl: profile.logoUrl || null,
-        }
-      : undefined,
   });
+
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        brandName: profile.businessName || "",
+        logoUrl: profile.logoUrl || null,
+      });
+    }
+  }, [profile, form]);
 
   const mutation = useMutation({
     mutationFn: updateProfile,
@@ -89,30 +117,169 @@ export default function SettingsPage() {
   return (
     <DashboardLayout
       title="Settings"
-      subtitle="Manage your profile and branding"
+      subtitle="Manage your profile and subscription"
     >
-      <div className="max-w-2xl mx-auto">
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle>Branding</CardTitle>
+      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card
+          className={`border-0 shadow-xl overflow-hidden transition-all duration-300 ${
+            isPro
+              ? "bg-linear-to-br from-blue-50 via-white to-purple-50"
+              : "bg-linear-to-br from-gray-50 to-white"
+          }`}
+        >
+          <CardHeader className="pb-4 relative overflow-hidden">
+            {isPro && (
+              <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-yellow-400/20 to-purple-400/20 rounded-full blur-3xl" />
+            )}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`p-3 rounded-xl ${
+                    isPro
+                      ? "bg-linear-to-br from-[#1451cb] to-purple-600 shadow-lg"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  {isPro ? (
+                    <Crown className="h-6 w-6 text-white" />
+                  ) : (
+                    <Sparkles className="h-6 w-6 text-gray-400" />
+                  )}
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold mb-1">
+                    {isPro ? "Pro Plan" : "Basic Plan"}
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    {isPro
+                      ? "Unlimited access to all premium features"
+                      : "Limited access with basic features"}
+                  </CardDescription>
+                </div>
+              </div>
+              <Badge
+                className={`${
+                  isPro
+                    ? "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 shadow-md"
+                    : "bg-gray-500 hover:bg-gray-600"
+                } text-white px-4 py-1.5 text-sm font-semibold`}
+              >
+                {isPro ? "PRO" : "BASIC"}
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4 pb-6">
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100">
+                  <CheckCircle2
+                    className={`h-5 w-5 mt-0.5 shrink-0 ${
+                      isPro ? "text-green-500" : "text-gray-400"
+                    }`}
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {isPro ? "Unlimited Bank Accounts" : "1 Bank Account"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {isPro
+                        ? "Connect as many as you need"
+                        : "Limited to single account"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100">
+                  <CheckCircle2
+                    className={`h-5 w-5 mt-0.5 shrink-0 ${
+                      isPro ? "text-green-500" : "text-gray-400"
+                    }`}
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {isPro ? "Premium Templates" : "Basic Templates"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {isPro
+                        ? "Access to all invoice designs"
+                        : "Limited template selection"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-center items-center sm:items-end gap-4">
+                {!isPro && (
+                  <div className="text-center sm:text-right">
+                    <p className="text-sm text-gray-500 mb-2">
+                      Unlock all features
+                    </p>
+                    <Button
+                      onClick={() => setShowBillingModal(true)}
+                      size="lg"
+                      className="bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
+                    >
+                      <Crown className="h-4 w-4 mr-2" />
+                      Upgrade to Pro
+                    </Button>
+                  </div>
+                )}
+
+                {isPro && (
+                  <div className="text-center sm:text-right">
+                    <p className="text-sm text-green-600 font-medium mb-2 flex items-center gap-2 justify-center sm:justify-end">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Active Subscription
+                    </p>
+                    <Button
+                      variant="outline"
+                      disabled
+                      className="border-gray-300"
+                    >
+                      Manage Subscription
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Branding Card */}
+        <Card className="border-0 shadow-xl overflow-hidden bg-white">
+          <CardHeader className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 rounded-lg">
+                <Building2 className="h-5 w-5 text-[#1451cb]" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Business Branding</CardTitle>
+                <CardDescription className="mt-1">
+                  Customize how your brand appears on invoices
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
             {isLoadingProfile ? (
               <FormSkeleton />
             ) : (
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
+                <div className="space-y-6">
                   <FormField
                     control={form.control}
                     name="brandName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Brand Name</FormLabel>
+                        <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Business Name
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Your Company Name" {...field} />
+                          <Input
+                            placeholder="Enter your company name"
+                            {...field}
+                            className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-colors"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -124,35 +291,55 @@ export default function SettingsPage() {
                     name="logoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Logo</FormLabel>
+                        <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Image className="h-4 w-4" />
+                          Business Logo
+                        </FormLabel>
                         <FormControl>
-                          <ImageUpload
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
+                          <div className="p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#1451cb] transition-colors bg-gray-50/50">
+                            <ImageUpload
+                              value={field.value || null}
+                              onChange={field.onChange}
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={mutation.isPending}
-                  >
-                    {mutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </Button>
-                </form>
+                  <div className="pt-4 border-t border-gray-100">
+                    <Button
+                      onClick={form.handleSubmit(onSubmit)}
+                      type="button"
+                      size="lg"
+                      className="w-full bg-linear-to-r from-[#1451cb] to-blue-600 hover:from-[#1451cb]/90 hover:to-blue-600/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 h-12 font-semibold"
+                      disabled={mutation.isPending}
+                    >
+                      {mutation.isPending ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          Saving Changes...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-5 w-5 mr-2" />
+                          Save Branding
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </Form>
             )}
           </CardContent>
         </Card>
       </div>
+
+      <BillingModal
+        open={showBillingModal}
+        onOpenChange={setShowBillingModal}
+      />
     </DashboardLayout>
   );
 }

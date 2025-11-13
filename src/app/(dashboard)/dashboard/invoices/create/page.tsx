@@ -44,10 +44,10 @@ function CreateInvoicePageContent() {
       taxRate: 0,
       discountValue: 0,
       templateId: templateId || undefined,
+      // hasPaymentSchedule: false,
     },
   });
 
-  // --- Data Fetching ---
   const { data: customers } = useQuery({
     queryKey: ["customers"],
     queryFn: getCustomers,
@@ -120,6 +120,27 @@ function CreateInvoicePageContent() {
   const onSubmit = async (data: InvoiceFormValues) => {
     setIsSubmitting(true);
     const totals = calculateTotals(data);
+
+    if (
+      data.hasPaymentSchedule &&
+      data.milestones &&
+      data.milestones.length > 0
+    ) {
+      const milestoneTotal = data.milestones.reduce(
+        (sum, m) => sum + (m.amount || 0),
+        0
+      );
+
+      const difference = Math.abs(totals.totalAmount - milestoneTotal);
+
+      if (difference > 1) {
+        toast.error("Payment Schedule Mismatch", {
+          description: `Your milestones total (₦${milestoneTotal.toLocaleString()}) does not match the invoice total (₦${totals.totalAmount.toLocaleString()}). Please fix the amounts.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     const payload = {
       ...data,
@@ -198,6 +219,16 @@ function CreateInvoicePageContent() {
       unitPrice: item.unitPrice,
       amount: (item.quantity || 0) * (item.unitPrice || 0),
     })),
+    hasPaymentSchedule: watchedData.hasPaymentSchedule,
+    paymentMilestones: (watchedData.milestones || []).map((m, index) => ({
+      id: `milestone-${index}`,
+      name: m.name,
+      amount: m.amount,
+      percentage: m.percentage || null,
+      dueDate: m.dueDate.toISOString(),
+      status: "PENDING",
+    })),
+    payments: existingInvoice?.payments || [],
     profile: existingInvoice?.profile || null,
     customer: customers?.find((c) => c.id === watchedData.customerId) || null,
     bankAccount:

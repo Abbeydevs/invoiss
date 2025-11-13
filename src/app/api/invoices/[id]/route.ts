@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateInvoiceSchema } from "@/lib/validators/invoice.schema";
+import { updateInvoiceApiSchema } from "@/lib/validators/invoice.schema";
 import z from "zod";
 
 export async function GET(
@@ -30,6 +30,10 @@ export async function GET(
         customer: true,
         bankAccount: true,
         template: true,
+        payments: { orderBy: { paymentDate: "desc" } },
+        paymentMilestones: {
+          orderBy: { order: "asc" },
+        },
       },
     });
 
@@ -73,7 +77,7 @@ export async function PATCH(
     const { id } = await params;
     const invoiceId = id;
     const body = await request.json();
-    const validatedData = updateInvoiceSchema.parse(body);
+    const validatedData = updateInvoiceApiSchema.parse(body);
 
     const existingInvoice = await prisma.invoice.findFirst({
       where: {
@@ -93,13 +97,16 @@ export async function PATCH(
       );
     }
 
-    const { items, ...invoiceData } = validatedData;
+    const { items, milestones, ...invoiceData } = validatedData;
 
     const updatedInvoice = await prisma.$transaction(async (tx) => {
       const invoice = await tx.invoice.update({
         where: { id: invoiceId },
         data: {
           ...invoiceData,
+          ...(validatedData.hasPaymentSchedule !== undefined && {
+            hasPaymentSchedule: validatedData.hasPaymentSchedule,
+          }),
         },
       });
 
@@ -107,8 +114,6 @@ export async function PATCH(
         await tx.invoiceItem.deleteMany({
           where: { invoiceId: invoiceId },
         });
-
-        // Create new items
         await tx.invoiceItem.createMany({
           data: items.map((item, index) => ({
             invoiceId: invoiceId,
@@ -119,6 +124,28 @@ export async function PATCH(
             order: index,
           })),
         });
+      }
+
+      if (milestones || validatedData.hasPaymentSchedule !== undefined) {
+        await tx.paymentMilestone.deleteMany({ where: { invoiceId } });
+
+        const shouldHaveSchedule =
+          validatedData.hasPaymentSchedule ??
+          existingInvoice.hasPaymentSchedule;
+
+        if (shouldHaveSchedule && milestones && milestones.length > 0) {
+          await tx.paymentMilestone.createMany({
+            data: milestones.map((m, index) => ({
+              invoiceId,
+              name: m.name,
+              amount: m.amount,
+              percentage: m.percentage,
+              dueDate: new Date(m.dueDate),
+              order: index,
+              status: "PENDING",
+            })),
+          });
+        }
       }
 
       return invoice;
