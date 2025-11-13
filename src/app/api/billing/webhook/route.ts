@@ -67,10 +67,7 @@ export async function POST(request: Request) {
 
     console.log("✅ Signature Verified. Processing Event:", payload.event_type);
 
-    if (
-      payload.event_type === "payment_success" ||
-      payload.event_type === "checkout.successful"
-    ) {
+    if (payload.event_type === "payment_success") {
       const orderReference =
         payload.data?.transaction?.merchantReference ||
         payload.data?.transaction?.orderReference ||
