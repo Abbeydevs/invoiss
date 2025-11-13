@@ -9,7 +9,12 @@ export async function POST(request: Request) {
     const signature = request.headers.get("nomba-signature");
     const timestamp = request.headers.get("nomba-timestamp");
 
+    const rawBody = await request.text();
+
     console.log("--- WEBHOOK POST RECEIVED ---");
+    console.log("Header Signature:", signature);
+    console.log("Header Timestamp:", timestamp);
+    console.log("Raw Body Payload:", rawBody);
 
     if (!signature || !timestamp) {
       console.error("Webhook Error: Missing Nomba headers");
@@ -19,6 +24,8 @@ export async function POST(request: Request) {
     const payload = await request.json();
 
     const isValid = verifyWebhookSignature(payload, signature, timestamp);
+
+    console.log("Signature Valid?", isValid);
 
     if (!isValid) {
       console.error("Webhook Error: Invalid signature.");
