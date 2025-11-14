@@ -115,3 +115,34 @@ export function verifyWebhookSignature(
 
   return hash === signature;
 }
+
+export async function verifyTransactionViaApi(orderReference: string) {
+  const accessToken = await getNombaAccessToken();
+  const accountId = process.env.NOMBA_ACCOUNT_ID;
+  const baseUrl = process.env.NOMBA_BASE_URL;
+
+  if (!accountId || !baseUrl) throw new Error("Missing env vars");
+
+  const url = `${baseUrl}/v1/transactions/accounts/single?orderReference=${orderReference}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      accountId: accountId,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to verify transaction with Nomba");
+  }
+
+  const data = await response.json();
+
+  if (data.code === "00" && data.description === "SUCCESS") {
+    return data.data;
+  }
+
+  return null;
+}

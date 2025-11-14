@@ -1,103 +1,55 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
+import { verifyTransactionViaApi } from "@/lib/nomba";
 
 export const dynamic = "force-dynamic";
 
-function verifyWebhookSignature(
-  payload: any,
-  signature: string,
-  timestamp: string
-): boolean {
-  const secret =
-    process.env.NOMBA_WEBHOOK_SECRET || process.env.NOMBA_PRIVATE_KEY;
-  if (!secret) return false;
-
-  const eventType = payload.event_type;
-  const requestId = payload.requestId;
-
-  const userId = payload.data?.merchant?.userId || "";
-  const walletId = payload.data?.merchant?.walletId || "";
-  const transactionId = payload.data?.transaction?.transactionId || "";
-  const type = payload.data?.transaction?.type || "";
-  const time = payload.data?.transaction?.time || "";
-  const responseCode = payload.data?.transaction?.responseCode || "";
-
-  const stringToSign = `${eventType}:${requestId}:${userId}:${walletId}:${transactionId}:${type}:${time}:${responseCode}:${timestamp}`;
-
-  console.log("Constructed String to Sign:", stringToSign);
-
-  const hash = crypto
-    .createHmac("sha256", secret)
-    .update(stringToSign)
-    .digest("base64");
-
-  console.log("Calculated Hash:", hash);
-  console.log("Nomba Signature:", signature);
-
-  return hash === signature;
-}
-
 export async function POST(request: Request) {
   try {
-    const signature = request.headers.get("nomba-signature");
-    const timestamp = request.headers.get("nomba-timestamp");
     const rawBody = await request.text();
-
-    console.log("--- WEBHOOK POST RECEIVED ---");
-    console.log("Signature:", signature);
-
-    if (!signature || !timestamp || !rawBody || rawBody === "{}") {
-      console.warn(
-        "⚠️ Empty or missing payload. Assuming Dashboard Test Ping. Returning 200 OK."
-      );
-      return NextResponse.json({ received: true, note: "handshake_accepted" });
-    }
-
     const payload = JSON.parse(rawBody);
 
-    const isValid = verifyWebhookSignature(payload, signature, timestamp);
+    console.log("--- WEBHOOK TRIGGERED ---");
 
-    if (!isValid) {
-      console.error("❌ Webhook Error: Invalid signature.");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    const orderReference =
+      payload.data?.transaction?.merchantReference ||
+      payload.data?.transaction?.orderReference ||
+      payload.data?.orderReference;
+
+    if (!orderReference) {
+      return NextResponse.json({ received: true, note: "no_reference" });
     }
 
-    console.log("✅ Signature Verified. Processing Event:", payload.event_type);
+    const transactionData = await verifyTransactionViaApi(orderReference);
 
-    if (payload.event_type === "payment_success") {
-      const orderReference =
-        payload.data?.transaction?.merchantReference ||
-        payload.data?.transaction?.orderReference ||
-        payload.data?.orderReference;
+    if (!transactionData) {
+      console.error(
+        "❌ Fake or Failed Transaction detected for ref:",
+        orderReference
+      );
+      return NextResponse.json({ received: true, note: "verification_failed" });
+    }
 
-      console.log("Processing Order Ref:", orderReference);
+    if (transactionData.status === "SUCCESS") {
+      const parts = orderReference.split("-");
+      if (parts[0] === "SUB" && parts[1]) {
+        const userId = parts[1];
 
-      if (orderReference) {
-        const parts = orderReference.split("-");
-        if (parts[0] === "SUB" && parts[1]) {
-          const userId = parts[1];
-
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              planType: "PRO",
-              subscriptionEndsAt: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ),
-            },
-          });
-          console.log(`SUCCESS: User ${userId} upgraded via Webhook`);
-        }
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            planType: "PRO",
+            subscriptionEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        });
+        console.log(`SUCCESS: User ${userId} upgraded via API Verification`);
       }
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook POST error:", error);
-    return NextResponse.json({ received: true, note: "error_caught" });
+    console.error("Webhook error:", error);
+    return NextResponse.json({ received: true });
   }
 }
 
