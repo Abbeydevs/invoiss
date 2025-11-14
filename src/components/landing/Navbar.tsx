@@ -22,7 +22,6 @@ export function Navbar() {
     { href: "/features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
     { href: "/contact", label: "Contact" },
-    { href: "/faq", label: "FAQs" },
   ];
 
   return (
