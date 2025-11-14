@@ -116,14 +116,19 @@ export function verifyWebhookSignature(
   return hash === signature;
 }
 
-export async function verifyTransactionViaApi(orderReference: string) {
+export async function verifyTransactionViaApi(
+  reference: string,
+  type: "orderReference" | "transactionId" = "orderReference"
+) {
   const accessToken = await getNombaAccessToken();
   const accountId = process.env.NOMBA_ACCOUNT_ID;
   const baseUrl = process.env.NOMBA_BASE_URL;
 
   if (!accountId || !baseUrl) throw new Error("Missing env vars");
 
-  const url = `${baseUrl}/v1/transactions/accounts/single?orderReference=${orderReference}`;
+  const url = `${baseUrl}/v1/transactions/accounts/single?${type}=${reference}`;
+
+  console.log(`Verifying via API: ${url}`);
 
   const response = await fetch(url, {
     method: "GET",
@@ -135,13 +140,27 @@ export async function verifyTransactionViaApi(orderReference: string) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to verify transaction with Nomba");
+    const errorText = await response.text();
+    console.error("Nomba Verify API Error:", errorText);
+    return null;
   }
 
   const data = await response.json();
 
-  if (data.code === "00" && data.description === "SUCCESS") {
-    return data.data;
+  console.log("Nomba Verify Response:", JSON.stringify(data));
+
+  if (data.code === "00" && data.description === "Successful") {
+    if (
+      data.data?.results &&
+      Array.isArray(data.data.results) &&
+      data.data.results.length > 0
+    ) {
+      return data.data.results[0];
+    }
+
+    if (data.data && !Array.isArray(data.data) && data.data.status) {
+      return data.data;
+    }
   }
 
   return null;

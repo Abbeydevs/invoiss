@@ -64,13 +64,26 @@ export async function GET() {
       where: {
         userId: session.user.id,
       },
+      include: {
+        user: {
+          select: {
+            planType: true,
+            subscriptionEndsAt: true,
+            billingCycle: true,
+          },
+        },
+      },
     });
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    return NextResponse.json(profile);
+    return NextResponse.json({
+      ...profile,
+      subscriptionEndsAt: profile.user.subscriptionEndsAt,
+      billingCycle: profile.user.billingCycle,
+    });
   } catch (error) {
     console.error("Get profile error:", error);
     return NextResponse.json(

@@ -21,6 +21,10 @@ export type Profile = {
   userId: string;
   businessName: string | null;
   logoUrl: string | null;
+  address: string | null;
+  phone: string | null;
+  subscriptionEndsAt?: string | null;
+  billingCycle?: string | null;
 };
 
 export type Invoice = {

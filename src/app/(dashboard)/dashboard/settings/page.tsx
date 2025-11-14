@@ -41,6 +41,7 @@ import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { ImageUpload } from "@/components/common/ImageUpload";
 import { BillingModal } from "@/components/billing/BillingModal";
 import { Profile } from "@/lib/types";
+import { format } from "date-fns";
 
 async function getProfile(): Promise<Profile> {
   const response = await fetch("/api/profile");
@@ -77,7 +78,7 @@ export default function SettingsPage() {
 
   const [showBillingModal, setShowBillingModal] = useState(false);
 
-  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
   });
@@ -91,13 +92,13 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (profile) {
+    if (profileData) {
       form.reset({
-        brandName: profile.businessName || "",
-        logoUrl: profile.logoUrl || null,
+        brandName: profileData.businessName || "",
+        logoUrl: profileData.logoUrl || null,
       });
     }
-  }, [profile, form]);
+  }, [profileData, form]);
 
   const mutation = useMutation({
     mutationFn: updateProfile,
@@ -112,6 +113,13 @@ export default function SettingsPage() {
 
   const onSubmit = (values: ProfileFormValues) => {
     mutation.mutate(values);
+  };
+
+  const getDaysRemaining = (dateString: string) => {
+    const end = new Date(dateString);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 3600 * 24));
   };
 
   return (
@@ -157,15 +165,25 @@ export default function SettingsPage() {
                   </CardDescription>
                 </div>
               </div>
-              <Badge
-                className={`${
-                  isPro
-                    ? "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 shadow-md"
-                    : "bg-gray-500 hover:bg-gray-600"
-                } text-white px-4 py-1.5 text-sm font-semibold`}
-              >
-                {isPro ? "PRO" : "BASIC"}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge
+                  className={`${
+                    isPro
+                      ? "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 shadow-md"
+                      : "bg-gray-500 hover:bg-gray-600"
+                  } text-white px-4 py-1.5 text-sm font-semibold`}
+                >
+                  {isPro ? "PRO" : "BASIC"}
+                </Badge>
+                {isPro && profileData?.billingCycle && (
+                  <Badge
+                    variant="outline"
+                    className="border-blue-200 text-blue-700 bg-blue-50"
+                  >
+                    {profileData.billingCycle}
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-4 pb-6">
@@ -221,6 +239,26 @@ export default function SettingsPage() {
                       <Crown className="h-4 w-4 mr-2" />
                       Upgrade to Pro
                     </Button>
+                  </div>
+                )}
+
+                {isPro && profileData?.subscriptionEndsAt && (
+                  <div className="text-center sm:text-right p-4 bg-white/60 rounded-xl border border-blue-100/50 shadow-sm w-full sm:w-auto">
+                    <p className="text-sm text-gray-500 mb-1">
+                      {profileData.billingCycle === "YEARLY"
+                        ? "Renews Yearly on"
+                        : "Renews Monthly on"}
+                    </p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {format(
+                        new Date(profileData.subscriptionEndsAt),
+                        "MMMM d, yyyy"
+                      )}
+                    </p>
+                    <p className="text-xs text-blue-600 font-medium mt-1">
+                      {getDaysRemaining(profileData.subscriptionEndsAt)} days
+                      remaining
+                    </p>
                   </div>
                 )}
 

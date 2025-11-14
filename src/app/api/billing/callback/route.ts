@@ -10,18 +10,27 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const orderReference = searchParams.get("orderReference");
+    const orderId = searchParams.get("orderId");
 
     if (!orderReference) {
       return NextResponse.redirect(new URL("/dashboard/billing", request.url));
     }
 
-    console.log("--- PAYMENT CALLBACK TRIGGERED ---");
-    console.log("Ref:", orderReference);
+    let transactionData = await verifyTransactionViaApi(
+      orderReference,
+      "orderReference"
+    );
 
-    const transactionData = await verifyTransactionViaApi(orderReference);
+    if (!transactionData && orderId) {
+      console.log("Verification with Ref failed. Trying Order ID...");
+      transactionData = await verifyTransactionViaApi(
+        orderId,
+        "orderReference"
+      );
+    }
 
     if (!transactionData) {
-      console.error("❌ Verification failed for ref:", orderReference);
+      console.error("Verification failed completely.");
       return NextResponse.redirect(
         new URL("/dashboard/billing?payment=failed", request.url)
       );
@@ -33,17 +42,26 @@ export async function GET(request: Request) {
       if (parts[0] === "SUB" && parts[1]) {
         const userId = parts[1];
 
+        const amountPaid = parseFloat(transactionData.amount);
+
+        const isYearly = amountPaid > 50000;
+        const daysToAdd = isYearly ? 365 : 30;
+        const billingCycle = isYearly ? "YEARLY" : "MONTHLY";
+
         await prisma.user.update({
           where: { id: userId },
           data: {
             planType: "PRO",
-            subscriptionEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycle: billingCycle,
+            subscriptionEndsAt: new Date(
+              Date.now() + daysToAdd * 24 * 60 * 60 * 1000
+            ),
           },
         });
-        console.log(`SUCCESS: User ${userId} upgraded via Callback`);
+        console.log(`SUCCESS: User ${userId} upgraded to ${billingCycle}`);
 
         return NextResponse.redirect(
-          new URL("/dashboard/billing?payment=success", request.url)
+          new URL("/dashboard/billing/success", request.url)
         );
       }
     }
