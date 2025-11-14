@@ -2,6 +2,7 @@
 
 import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
+import { MobileRestriction } from "../common/MobileRestriction";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+      <MobileRestriction />
+
       <Sidebar />
 
       <div className="lg:pl-72 transition-all duration-300">

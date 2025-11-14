@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { InvoiceDetail } from "@/lib/types";
+import { MobileRestriction } from "@/components/common/MobileRestriction";
 
 function CreateInvoicePageContent() {
   const router = useRouter();
@@ -283,14 +284,17 @@ function CreateInvoicePageContent() {
 
 export default function NewInvoicePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-8">
-          <FormSkeleton />
-        </div>
-      }
-    >
-      <CreateInvoicePageContent />
-    </Suspense>
+    <>
+      <MobileRestriction />
+      <Suspense
+        fallback={
+          <div className="p-8">
+            <FormSkeleton />
+          </div>
+        }
+      >
+        <CreateInvoicePageContent />
+      </Suspense>
+    </>
   );
 }
