@@ -37,10 +37,18 @@ export default function CustomersPage() {
     }
 
     if (error) {
-      return <p className="text-center text-red-500">Error: {error.message}</p>;
+      return (
+        <div className="flex items-center justify-center py-10">
+          <p className="text-center text-red-500 bg-red-50 px-4 py-2 rounded-lg">
+            Error loading customers: {error.message}
+          </p>
+        </div>
+      );
     }
 
-    if (!data || data.customers.length === 0) {
+    const customerList = data?.customers || [];
+
+    if (customerList.length === 0) {
       return (
         <EmptyState
           icon={Users}
@@ -68,7 +76,7 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.customers.map((customer) => (
+            {customerList.map((customer) => (
               <TableRow key={customer.id}>
                 <TableCell className="font-medium text-gray-900">
                   {customer.name}
@@ -80,7 +88,10 @@ export default function CustomersPage() {
                   {customer.phone ? (
                     customer.phone
                   ) : (
-                    <Badge variant="outline" className="font-normal">
+                    <Badge
+                      variant="outline"
+                      className="font-normal text-gray-400 border-gray-200"
+                    >
                       N/A
                     </Badge>
                   )}
@@ -98,7 +109,9 @@ export default function CustomersPage() {
       title="Customers"
       subtitle="Manage your customer list"
       action={
-        !isLoading && data && data.customers.length > 0 ? <AddCustomer /> : null
+        !isLoading && data?.customers && data.customers.length > 0 ? (
+          <AddCustomer />
+        ) : null
       }
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
