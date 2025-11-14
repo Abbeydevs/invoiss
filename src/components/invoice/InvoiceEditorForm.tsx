@@ -67,6 +67,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { MilestoneManager } from "./MilestoneManager";
+import { CurrencyInput } from "../ui/currency-input";
 
 interface InvoiceEditorFormProps {
   form: UseFormReturn<InvoiceFormValues>;
@@ -477,15 +478,10 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                       <FormItem>
                         <FormLabel className="text-xs">Price</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
+                          <CurrencyInput
+                            value={field.value}
+                            onChange={field.onChange}
                             placeholder="0.00"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />

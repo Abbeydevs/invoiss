@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { InvoiceFormValues } from "@/lib/validators/invoice.schema";
+import { CurrencyInput } from "../ui/currency-input";
 
 export function MilestoneManager() {
   const { control, watch, setValue } = useFormContext<InvoiceFormValues>();
@@ -33,7 +34,25 @@ export function MilestoneManager() {
   });
 
   const hasSchedule = watch("hasPaymentSchedule");
-  const totalAmount = watch("totalAmount") || 0;
+  const items = watch("items") || [];
+  const subtotal = items.reduce(
+    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
+    0
+  );
+
+  const taxRate = watch("taxRate") || 0;
+  const discountValue = watch("discountValue") || 0;
+  const discountType = watch("discountType");
+  const taxAmount = (subtotal * taxRate) / 100;
+
+  let discountAmount = 0;
+  if (discountType === "PERCENTAGE") {
+    discountAmount = (subtotal * discountValue) / 100;
+  } else {
+    discountAmount = discountValue;
+  }
+
+  const totalAmount = subtotal + taxAmount - discountAmount;
 
   const milestones = watch("milestones") || [];
   const milestoneTotal = milestones.reduce(
@@ -65,16 +84,45 @@ export function MilestoneManager() {
 
       {hasSchedule && (
         <CardContent className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-          {Math.abs(remaining) > 1 && (
-            <div className="bg-yellow-50 text-yellow-800 text-sm p-3 rounded-md flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>
-                {remaining > 0
-                  ? `Remaining amount to allocate: ₦${remaining.toLocaleString()}`
-                  : `You exceeded the total by ₦${Math.abs(remaining).toLocaleString()}`}
-              </span>
-            </div>
-          )}
+          <div
+            className={cn(
+              "text-sm p-3 rounded-md flex items-center gap-2 border",
+              remaining > 1
+                ? "bg-blue-50 text-blue-800 border-blue-100"
+                : remaining < -1
+                  ? "bg-red-50 text-red-800 border-red-100"
+                  : "bg-green-50 text-green-800 border-green-100"
+            )}
+          >
+            {remaining > 1 && (
+              <>
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  <strong>Unassigned:</strong> ₦{remaining.toLocaleString()}{" "}
+                  needs to be added to milestones.
+                </span>
+              </>
+            )}
+            {remaining < -1 && (
+              <>
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  <strong>Over Budget:</strong> You have exceeded the total by ₦
+                  {Math.abs(remaining).toLocaleString()}. Reduce amounts.
+                </span>
+              </>
+            )}
+            {Math.abs(remaining) > 1 && (
+              <div className="bg-yellow-50 text-yellow-800 text-sm p-3 rounded-md flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  {remaining > 0
+                    ? `Remaining amount to allocate: ₦${remaining.toLocaleString()}`
+                    : `You exceeded the total by ₦${Math.abs(remaining).toLocaleString()}`}
+                </span>
+              </div>
+            )}
+          </div>
 
           <div className="space-y-4">
             {fields.map((field, index) => (
@@ -99,7 +147,6 @@ export function MilestoneManager() {
                     )}
                   />
 
-                  {/* Amount */}
                   <FormField
                     control={control}
                     name={`milestones.${index}.amount`}
@@ -107,12 +154,10 @@ export function MilestoneManager() {
                       <FormItem className="w-32">
                         <FormLabel className="text-xs">Amount</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value))
-                            }
+                          <CurrencyInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="0.00"
                           />
                         </FormControl>
                         <FormMessage />
