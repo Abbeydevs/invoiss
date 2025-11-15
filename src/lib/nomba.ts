@@ -149,7 +149,7 @@ export async function verifyTransactionViaApi(
 
   console.log("Nomba Verify Response:", JSON.stringify(data));
 
-  if (data.code === "00" && data.description === "Successful") {
+  if (data.code === "00" && data.description === "SUCCESS") {
     if (
       data.data?.results &&
       Array.isArray(data.data.results) &&
