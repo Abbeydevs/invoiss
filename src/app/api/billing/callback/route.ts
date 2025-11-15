@@ -1,5 +1,3 @@
-// src/app/api/billing/callback/route.ts
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyTransactionViaApi } from "@/lib/nomba";
@@ -10,7 +8,9 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const orderReference = searchParams.get("orderReference");
-    const orderId = searchParams.get("orderId");
+
+    console.log("--- PAYMENT CALLBACK TRIGGERED ---");
+    console.log("Ref:", orderReference);
 
     if (!orderReference) {
       return NextResponse.redirect(new URL("/dashboard/billing", request.url));
@@ -21,12 +21,9 @@ export async function GET(request: Request) {
       "orderReference"
     );
 
-    if (!transactionData && orderId) {
+    if (!transactionData) {
       console.log("Verification with Ref failed. Trying Order ID...");
-      transactionData = await verifyTransactionViaApi(
-        orderId,
-        "orderReference"
-      );
+      transactionData = await verifyTransactionViaApi("orderReference");
     }
 
     if (!transactionData) {

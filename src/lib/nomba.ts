@@ -155,7 +155,11 @@ export async function verifyTransactionViaApi(
       Array.isArray(data.data.results) &&
       data.data.results.length > 0
     ) {
-      return data.data.results[0];
+      const transaction = data.data.results[0];
+
+      if (transaction.status === "SUCCESS") {
+        return transaction;
+      }
     }
 
     if (data.data && !Array.isArray(data.data) && data.data.status) {
@@ -163,5 +167,6 @@ export async function verifyTransactionViaApi(
     }
   }
 
+  console.log("Could not find a successful transaction in the response.");
   return null;
 }
