@@ -6,6 +6,19 @@ async function main() {
   console.log("Start seeding...");
 
   await prisma.template.upsert({
+    where: { id: "custom" },
+    update: {},
+    create: {
+      id: "custom",
+      name: "Custom (Default)",
+      isDefault: true,
+      isPremium: false,
+      design: { layout: "classic-v1" },
+      userId: null,
+    },
+  });
+
+  await prisma.template.upsert({
     where: { id: "classic" },
     update: {
       thumbnail:

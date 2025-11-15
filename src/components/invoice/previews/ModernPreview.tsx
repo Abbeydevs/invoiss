@@ -37,6 +37,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   alt={profile.businessName || "Logo"}
                   fill
                   className="object-contain"
+                  unoptimized
                 />
               </div>
             ) : (
@@ -46,7 +47,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
             )}
             <div className="space-y-0.5 text-xs text-blue-100">
               <p className="leading-relaxed wrap-break-word">
-                {profile?.address}
+                {profile?.address || ""}
               </p>
               <p className="wrap-break-word">{profile?.phone}</p>
             </div>
@@ -64,10 +65,10 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 {customer?.email || invoice.billToEmail}
               </p>
               <p className="wrap-break-word">
-                {customer?.phone || invoice.billToPhone}
+                {customer?.phone || invoice.billToPhone || ""}
               </p>
               <p className="leading-relaxed wrap-break-word">
-                {customer?.address || invoice.billToAddress}
+                {customer?.address || invoice.billToAddress || ""}
               </p>
             </div>
           </div>
@@ -188,7 +189,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   Notes
                 </h4>
                 <p className="text-[11px] text-blue-800 leading-relaxed wrap-break-word">
-                  {invoice.notes}
+                  {invoice.notes || ""}
                 </p>
               </div>
             )}
@@ -199,7 +200,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                   Payment Terms
                 </h4>
                 <p className="text-[11px] text-gray-700 leading-relaxed wrap-break-word">
-                  {invoice.paymentTerms}
+                  {invoice.paymentTerms || ""}
                 </p>
               </div>
             )}

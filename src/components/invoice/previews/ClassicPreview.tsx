@@ -41,8 +41,8 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
             </h2>
           )}
           <div className="text-sm text-slate-600 space-y-0.5">
-            <p className="font-medium">{profile?.address}</p>
-            <p>{profile?.phone}</p>
+            <p className="font-medium">{profile?.address || ""}</p>
+            <p>{profile?.phone || ""}</p>
           </div>
         </div>
         <div className="text-right">
@@ -68,8 +68,8 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
           </h3>
           <div className="space-y-1 text-sm text-slate-600">
             <p>{customer?.email || invoice.billToEmail}</p>
-            <p>{customer?.phone || invoice.billToPhone}</p>
-            <p>{customer?.address || invoice.billToAddress}</p>
+            <p>{customer?.phone || invoice.billToPhone || ""}</p>
+            <p>{customer?.address || invoice.billToAddress || ""}</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
                 Notes
               </h4>
               <p className="text-sm text-blue-800 leading-relaxed">
-                {invoice.notes}
+                {invoice.notes || ""}
               </p>
             </div>
           )}
