@@ -396,11 +396,12 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {bankAccounts?.map((account: BankAccount) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {`${account.bankName} - (...${account.accountNumber.slice(-4)})`}
-                        </SelectItem>
-                      ))}
+                      {Array.isArray(bankAccounts) &&
+                        bankAccounts?.map((account: BankAccount) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {`${account.bankName} - (...${account.accountNumber.slice(-4)})`}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -17,21 +17,24 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
+      minimumFractionDigits: 2,
     }).format(amount);
   };
 
   return (
-    <div className="flex flex-row min-h-[1123px] font-sans bg-white">
-      {/* Left Sidebar with Gradient and Shapes */}
-      <div className="w-[30%] bg-linear-to-br from-[#1451cb] via-[#1565d8] to-[#1451cb] text-white p-8 flex flex-col relative overflow-hidden print:bg-[#1451cb]">
-        {/* Decorative Circles */}
+    <div
+      id="invoice-preview-capture"
+      className="flex flex-row w-full mx-auto font-sans bg-white"
+      style={{ minHeight: "297mm" }}
+    >
+      <div className="w-[28%] bg-linear-to-br from-[#1451cb] via-[#1565d8] to-[#1451cb] text-white p-6 flex flex-col relative overflow-hidden print:bg-[#1451cb] rounded-l-xl">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
 
         <div className="relative z-10">
-          <div className="mb-10">
+          <div className="mb-8">
             {profile?.logoUrl ? (
-              <div className="relative w-[100px] h-[50px] mb-5 bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+              <div className="relative w-[100px] h-[50px] mb-4 bg-white/10 backdrop-blur-sm p-2 rounded-lg">
                 <Image
                   src={profile.logoUrl}
                   alt={profile.businessName || "Logo"}
@@ -41,26 +44,26 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 />
               </div>
             ) : (
-              <h2 className="text-lg font-bold text-white mb-5 wrap-break-word">
+              <h2 className="text-base font-bold text-white mb-4 wrap-break-word">
                 {profile?.businessName || "Your Company"}
               </h2>
             )}
-            <div className="space-y-0.5 text-xs text-blue-100">
+            <div className="space-y-1 text-[10px] text-blue-100">
               <p className="leading-relaxed wrap-break-word">
                 {profile?.address || ""}
               </p>
-              <p className="wrap-break-word">{profile?.phone}</p>
+              <p className="wrap-break-word">{profile?.phone || ""}</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-8">
-            <p className="font-bold text-blue-100 text-[10px] uppercase tracking-wider mb-2">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 mb-6">
+            <p className="font-bold text-blue-100 text-[9px] uppercase tracking-wider mb-2">
               Bill To
             </p>
-            <h3 className="text-base font-bold text-white mb-2 wrap-break-word">
+            <h3 className="text-sm font-bold text-white mb-1 wrap-break-word">
               {customer?.name || invoice.billToName}
             </h3>
-            <div className="space-y-1 text-xs text-blue-100">
+            <div className="space-y-1 text-[10px] text-blue-100">
               <p className="wrap-break-word">
                 {customer?.email || invoice.billToEmail}
               </p>
@@ -73,20 +76,20 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-              <p className="font-bold text-blue-100 text-[10px] uppercase tracking-wider mb-1">
+          <div className="space-y-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <p className="font-bold text-blue-100 text-[8px] uppercase tracking-wider mb-0.5">
                 Invoice Date
               </p>
-              <p className="text-white font-semibold text-sm">
+              <p className="text-white font-semibold text-xs">
                 {format(new Date(invoice.invoiceDate), "MMM d, yyyy")}
               </p>
             </div>
-            <div className="bg-amber-500/20 backdrop-blur-sm rounded-lg p-4 border border-amber-300/30">
-              <p className="font-bold text-amber-100 text-[10px] uppercase tracking-wider mb-1">
+            <div className="bg-amber-500/20 backdrop-blur-sm rounded-lg p-3 border border-amber-300/30">
+              <p className="font-bold text-amber-100 text-[8px] uppercase tracking-wider mb-0.5">
                 Due Date
               </p>
-              <p className="text-white font-semibold text-sm">
+              <p className="text-white font-semibold text-xs">
                 {format(new Date(invoice.dueDate), "MMM d, yyyy")}
               </p>
             </div>
@@ -94,16 +97,13 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
-      {/* Right Content */}
-      <div className="w-[70%] p-8 bg-gray-50">
+      <div className="w-[72%] p-8 bg-gray-50 rounded-r-xl border border-l-0 border-gray-200">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">INVOICE</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-gray-500 font-medium">
-                Invoice Number:
-              </span>
-              <span className="text-xs font-bold text-gray-900 bg-white px-3 py-1 rounded-full border border-gray-200">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">INVOICE</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-gray-500 font-medium">No:</span>
+              <span className="text-[10px] font-bold text-gray-900 bg-white px-2 py-0.5 rounded-full border border-gray-200">
                 {invoice.invoiceNumber}
               </span>
             </div>
@@ -111,149 +111,95 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
         </div>
 
         <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-          <div className="grid grid-cols-12 gap-2 bg-gray-900 text-white py-3 px-4">
-            <div className="col-span-5 font-bold text-[10px] uppercase tracking-wider">
-              Description
-            </div>
-            <div className="col-span-2 font-bold text-[10px] uppercase tracking-wider text-center">
-              Qty
-            </div>
-            <div className="col-span-2 font-bold text-[10px] uppercase tracking-wider text-right">
-              Price
-            </div>
-            <div className="col-span-3 font-bold text-[10px] uppercase tracking-wider text-right">
-              Amount
-            </div>
+          <div className="grid grid-cols-12 gap-2 bg-gray-900 text-white py-3 px-4 text-[9px] font-bold uppercase tracking-wider">
+            <div className="col-span-5">Description</div>
+            <div className="col-span-1 text-center">Qty</div>
+            <div className="col-span-3 text-right">Price</div>
+            <div className="col-span-3 text-right">Amount</div>
           </div>
 
           {invoice.items.map((item, index) => (
             <div
               key={item.id}
-              className={`grid grid-cols-12 gap-2 py-3 px-4 ${
+              className={`grid grid-cols-12 gap-2 py-3 px-4 items-center ${
                 index % 2 === 0 ? "bg-white" : "bg-gray-50"
               } ${index !== invoice.items.length - 1 ? "border-b border-gray-100" : ""}`}
             >
-              <div className="col-span-5 text-gray-800 font-medium text-[11px] wrap-break-word">
+              <div className="col-span-5 text-gray-800 font-medium text-[10px] wrap-break-word">
                 {item.description}
               </div>
-              <div className="col-span-2 text-gray-700 text-center font-semibold text-[11px]">
+              <div className="col-span-1 text-gray-700 text-center font-semibold text-[10px]">
                 {item.quantity}
               </div>
-              <div className="col-span-2 text-gray-600 text-right text-[11px] wrap-break-word">
+              <div className="col-span-3 text-gray-600 text-right text-[10px]">
                 {formatCurrency(item.unitPrice)}
               </div>
-              <div className="col-span-3 text-gray-900 font-bold text-right text-[11px] wrap-break-word">
+              <div className="col-span-3 text-gray-900 font-bold text-right text-[10px]">
                 {formatCurrency(item.amount)}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-6 space-y-4">
             {bankAccount && (
               <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 bg-[#1451cb] rounded-lg flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-3.5 h-3.5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-gray-900 text-[10px] uppercase tracking-wider">
-                    Payment Details
-                  </h4>
-                </div>
-                <div className="text-[11px] text-gray-700 space-y-0.5">
-                  <p className="font-semibold text-gray-900 wrap-break-word">
+                <h4 className="font-bold text-gray-900 text-[9px] uppercase tracking-wider mb-2">
+                  Payment Details
+                </h4>
+                <div className="text-[10px] text-gray-700 space-y-0.5">
+                  <p className="font-semibold text-gray-900">
                     {bankAccount.bankName}
                   </p>
-                  <p className="wrap-break-word">{bankAccount.accountNumber}</p>
-                  <p className="wrap-break-word">{bankAccount.accountName}</p>
+                  <p>{bankAccount.accountNumber}</p>
+                  <p>{bankAccount.accountName}</p>
                 </div>
               </div>
             )}
-
             {invoice.notes && (
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <h4 className="font-bold text-blue-900 mb-1.5 text-[10px] uppercase tracking-wider">
+              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <h4 className="font-bold text-blue-900 mb-1 text-[9px] uppercase tracking-wider">
                   Notes
                 </h4>
-                <p className="text-[11px] text-blue-800 leading-relaxed wrap-break-word">
-                  {invoice.notes || ""}
-                </p>
-              </div>
-            )}
-
-            {invoice.paymentTerms && (
-              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <h4 className="font-bold text-gray-900 mb-1.5 text-[10px] uppercase tracking-wider">
-                  Payment Terms
-                </h4>
-                <p className="text-[11px] text-gray-700 leading-relaxed wrap-break-word">
-                  {invoice.paymentTerms || ""}
+                <p className="text-[10px] text-blue-800 leading-relaxed">
+                  {invoice.notes}
                 </p>
               </div>
             )}
           </div>
 
-          <div>
-            <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-              <div className="space-y-2.5">
-                <div className="flex justify-between items-start pb-2 border-b border-gray-100">
-                  <span className="font-medium text-[11px] text-gray-700">
-                    Subtotal
+          <div className="col-span-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-[10px]">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-semibold text-gray-900">
+                  {formatCurrency(invoice.subtotal)}
+                </span>
+              </div>
+              {(invoice.taxAmount ?? 0) > 0 && (
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-[10px]">
+                  <span className="text-gray-600">
+                    Tax ({invoice.taxRate}%)
                   </span>
-                  <span className="font-semibold text-[11px] text-gray-900 wrap-break-word text-right ml-2">
-                    {formatCurrency(invoice.subtotal)}
-                  </span>
-                </div>
-
-                {invoice.taxAmount && invoice.taxAmount > 0 && (
-                  <div className="flex justify-between items-start pb-2 border-b border-gray-100">
-                    <span className="font-medium text-[11px] text-gray-700">
-                      Tax ({invoice.taxRate}%)
-                    </span>
-                    <span className="font-semibold text-[11px] text-gray-900 wrap-break-word text-right ml-2">
-                      {formatCurrency(invoice.taxAmount)}
-                    </span>
-                  </div>
-                )}
-
-                {invoice.discountAmount && invoice.discountAmount > 0 && (
-                  <div className="flex justify-between items-start pb-2 border-b border-gray-100">
-                    <span className="font-medium text-[11px] text-gray-700">
-                      Discount
-                    </span>
-                    <span className="text-red-600 font-semibold text-[11px] wrap-break-word text-right ml-2">
-                      -{formatCurrency(invoice.discountAmount)}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-start pt-2">
-                  <span className="text-base font-bold text-gray-900">
-                    Total
-                  </span>
-                  <span className="text-lg font-bold text-gray-900 wrap-break-word text-right ml-2">
-                    {formatCurrency(invoice.totalAmount)}
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(invoice.taxAmount ?? 0)}
                   </span>
                 </div>
+              )}
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-xs font-bold text-gray-900">Total</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {formatCurrency(invoice.totalAmount)}
+                </span>
               </div>
 
-              <div className="bg-linear-to-r from-[#1451cb] to-[#1565d8] text-white p-4 rounded-xl mt-4 shadow-lg">
-                <div className="flex justify-between items-start">
-                  <span className="font-bold text-xs">Amount Due</span>
-                  <span className="text-lg font-bold wrap-break-word text-right ml-2">
+              <div className="bg-[#1451cb] text-white p-4 rounded-lg mt-2 shadow-md">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-tight">
+                    Amount Due
+                  </span>
+                  <span className="text-sm font-bold">
                     {formatCurrency(invoice.balanceDue)}
                   </span>
                 </div>
@@ -263,58 +209,41 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
         </div>
 
         {invoice.hasPaymentSchedule &&
-          invoice.paymentMilestones &&
-          invoice.paymentMilestones.length > 0 && (
-            <div className="mt-10">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                  <h4 className="font-bold text-gray-900 text-[10px] uppercase tracking-wider">
-                    Payment Schedule
-                  </h4>
-                </div>
-                <div className="p-2">
-                  {invoice.paymentMilestones.map((milestone, index) => (
-                    <div
-                      key={milestone.id}
-                      className={`flex items-center justify-between p-3 ${index !== invoice.paymentMilestones.length - 1 ? "border-b border-gray-100" : ""}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-2 h-2 rounded-full ${milestone.status === "PAID" ? "bg-green-500" : "bg-amber-400"}`}
-                        ></div>
-                        <div>
-                          <p className="text-[11px] font-bold text-gray-900">
-                            {milestone.name}
-                          </p>
-                          <p className="text-[10px] text-gray-500">
-                            Due:{" "}
-                            {format(new Date(milestone.dueDate), "MMM d, yyyy")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] font-bold text-gray-900">
-                          {formatCurrency(milestone.amount)}
-                        </p>
-                        <span
-                          className={`inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            milestone.status === "PAID"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-amber-50 text-amber-700"
-                          }`}
-                        >
-                          {milestone.status}
-                        </span>
-                      </div>
+          invoice.paymentMilestones?.length > 0 && (
+            <div className="mt-8">
+              <h4 className="font-bold text-gray-900 text-[9px] uppercase tracking-wider mb-3">
+                Payment Schedule
+              </h4>
+              <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                {invoice.paymentMilestones.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex justify-between items-center p-3 text-[10px]"
+                  >
+                    <div>
+                      <p className="font-bold text-gray-900">{m.name}</p>
+                      <p className="text-[8px] text-gray-500">
+                        {format(new Date(m.dueDate), "MMM d, yyyy")}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">
+                        {formatCurrency(m.amount)}
+                      </p>
+                      <span
+                        className={`text-[8px] font-bold ${m.status === "PAID" ? "text-green-600" : "text-amber-600"}`}
+                      >
+                        {m.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-        <div className="mt-8 pt-5 border-t border-gray-200 text-center">
-          <p className="text-gray-600 text-xs font-medium">
+        <div className="mt-8 pt-4 border-t border-gray-200 text-center">
+          <p className="text-gray-400 text-[10px]">
             Thank you for your business!
           </p>
         </div>

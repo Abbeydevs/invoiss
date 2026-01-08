@@ -103,22 +103,38 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
 
   const handleDownload = async () => {
     setIsDownloading(true);
+
     try {
-      const element = document.getElementById("invoice-preview-capture");
-      if (!element) {
-        throw new Error("Invoice preview not found");
-      }
+      const originalElement = document.getElementById(
+        "invoice-preview-capture"
+      );
+      if (!originalElement) throw new Error("Preview not found");
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      const ghostContainer = document.createElement("div");
+      ghostContainer.style.position = "absolute";
+      ghostContainer.style.top = "-9999px";
+      ghostContainer.style.left = "0";
+      ghostContainer.style.width = "800px";
+      document.body.appendChild(ghostContainer);
 
-      const imgData = await toPng(element, {
+      const clonedElement = originalElement.cloneNode(true) as HTMLElement;
+
+      clonedElement.style.margin = "0";
+      clonedElement.style.padding = "0";
+      clonedElement.style.width = "800px";
+      clonedElement.style.minHeight = "auto";
+      clonedElement.className = "";
+
+      ghostContainer.appendChild(clonedElement);
+
+      const imgData = await toPng(clonedElement, {
         cacheBust: true,
+        pixelRatio: 2,
         backgroundColor: "#ffffff",
-        pixelRatio: 3,
-        quality: 1,
-        width: element.offsetWidth,
-        height: element.offsetHeight,
+        width: 800,
       });
+
+      document.body.removeChild(ghostContainer);
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -127,25 +143,12 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
       });
 
       const pdfWidth = 210;
-      const pdfHeight = 297;
+      const pdfHeight = (clonedElement.scrollHeight * pdfWidth) / 800;
 
-      const imgWidth = pdfWidth;
-      const imgHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
-
-      if (imgHeight > pdfHeight) {
-        const scale = pdfHeight / imgHeight;
-        const scaledWidth = imgWidth * scale;
-        const scaledHeight = pdfHeight;
-        const xOffset = (pdfWidth - scaledWidth) / 2;
-        pdf.addImage(imgData, "PNG", xOffset, 0, scaledWidth, scaledHeight);
-      } else {
-        const yOffset = (pdfHeight - imgHeight) / 2;
-        pdf.addImage(imgData, "PNG", 0, yOffset, imgWidth, imgHeight);
-      }
-
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${invoice.invoiceNumber}.pdf`);
 
-      toast.success("PDF downloaded successfully!");
+      toast.success("PDF downloaded perfectly!");
     } catch (error) {
       console.error("Download failed:", error);
       toast.error("Failed to download PDF");

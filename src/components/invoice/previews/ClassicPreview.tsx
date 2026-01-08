@@ -21,7 +21,10 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
   };
 
   return (
-    <div className="min-h-[1000px] bg-white p-12">
+    <div
+      className="bg-white p-12 w-full mx-auto"
+      style={{ minHeight: "297mm" }}
+    >
       <div className="h-2 bg-linear-to-r from-slate-700 via-slate-600 to-slate-700 -mx-12 -mt-12 mb-10"></div>
 
       <div className="flex justify-between items-start mb-10">
@@ -33,6 +36,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
                 alt={profile.businessName || "Logo"}
                 fill
                 className="object-contain object-left"
+                unoptimized
               />
             </div>
           ) : (
@@ -150,7 +154,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
                 Payment Terms
               </h4>
               <p className="text-sm text-slate-700 leading-relaxed">
-                {invoice.paymentTerms}
+                {invoice.paymentTerms || ""}
               </p>
             </div>
           )}
