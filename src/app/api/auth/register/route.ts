@@ -33,12 +33,18 @@ export async function POST(request: Request) {
 
     const hashedPassword = await hash(validatedData.password, 12);
 
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + 7);
+
     const user = await prisma.user.create({
       data: {
         email: validatedData.email,
         password: hashedPassword,
         accountType: validatedData.accountType,
-        planType: "BASIC",
+        planType: "PRO",
+        subscriptionEndsAt: trialEndDate,
+        trialEndsAt: trialEndDate,
+
         profile: {
           create: {
             businessName: validatedData.businessName,

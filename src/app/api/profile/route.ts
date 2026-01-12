@@ -70,6 +70,7 @@ export async function GET() {
             planType: true,
             subscriptionEndsAt: true,
             billingCycle: true,
+            trialEndsAt: true,
           },
         },
       },
@@ -82,6 +83,7 @@ export async function GET() {
     return NextResponse.json({
       ...profile,
       subscriptionEndsAt: profile.user.subscriptionEndsAt,
+      trialEndsAt: profile.user.trialEndsAt,
       billingCycle: profile.user.billingCycle,
     });
   } catch (error) {

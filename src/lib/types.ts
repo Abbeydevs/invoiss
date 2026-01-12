@@ -25,6 +25,7 @@ export type Profile = {
   phone: string | null;
   subscriptionEndsAt?: string | null;
   billingCycle?: string | null;
+  trialEndsAt?: string | null;
 };
 
 export type Invoice = {
