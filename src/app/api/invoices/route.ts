@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-// import { invoiceApiSchema } from "@/lib/validators/invoice.schema";
 
 const localInvoiceApiSchema = z.object({
   customerId: z.string().optional(),
@@ -12,7 +11,6 @@ const localInvoiceApiSchema = z.object({
   billToPhone: z.string().optional(),
   billToAddress: z.string().optional(),
 
-  // API receives strings, so we coerce them to dates
   invoiceDate: z.coerce.date(),
   dueDate: z.coerce.date(),
 
@@ -34,7 +32,6 @@ const localInvoiceApiSchema = z.object({
   bankAccountId: z.string().min(1),
   templateId: z.string().min(1),
 
-  // Payment Schedule Fields
   hasPaymentSchedule: z.boolean().optional(),
   milestones: z
     .array(
@@ -42,12 +39,11 @@ const localInvoiceApiSchema = z.object({
         name: z.string().min(1),
         amount: z.number().min(0),
         percentage: z.number().optional(),
-        dueDate: z.coerce.date(), // Coerce string to Date
+        dueDate: z.coerce.date(),
       })
     )
     .optional(),
 
-  // Calculated Fields
   subtotal: z.number().optional(),
   taxAmount: z.number().optional(),
   discountAmount: z.number().optional(),
@@ -74,7 +70,6 @@ export async function POST(request: Request) {
 
     const lastInvoice = await prisma.invoice.findFirst({
       where: {
-        // userId: session.user.id,
         invoiceNumber: {
           startsWith: prefix,
         },

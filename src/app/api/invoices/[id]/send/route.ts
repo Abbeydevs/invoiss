@@ -2,11 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/mail";
 import { InvoiceEmailTemplate } from "@/components/email/InvoiceEmailTemplate";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.RESEND_FROM_EMAIL;
 
 export async function POST(
   request: Request,
@@ -21,15 +18,9 @@ export async function POST(
 
     if (session.user.planType !== "PRO") {
       return NextResponse.json(
-        {
-          error: "Upgrade to Pro to send invoices directly.",
-        },
+        { error: "Upgrade to Pro to send invoices directly." },
         { status: 403 }
       );
-    }
-
-    if (!fromEmail) {
-      throw new Error("RESEND_FROM_EMAIL is not set in .env");
     }
 
     const { id: invoiceId } = await params;
@@ -64,10 +55,10 @@ export async function POST(
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const invoiceViewUrl = `${appUrl}/public/invoice/${invoice.id}`;
 
-    const { error } = await resend.emails.send({
-      from: `${businessName} <${fromEmail}>`,
-      to: [customerEmail],
+    const { success, error } = await sendEmail({
+      to: customerEmail,
       subject: `New Invoice ${invoice.invoiceNumber} from ${businessName}`,
+      senderName: businessName,
       react: InvoiceEmailTemplate({
         invoiceNumber: invoice.invoiceNumber,
         totalAmount: invoice.totalAmount,
@@ -80,8 +71,8 @@ export async function POST(
       }) as React.ReactElement,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
+    if (!success) {
+      console.error("Email Helper Failed:", error);
       return NextResponse.json(
         { error: "Failed to send email" },
         { status: 500 }
