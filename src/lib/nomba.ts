@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -26,8 +27,6 @@ interface NombaWebhookPayload {
 export async function getNombaAccessToken() {
   const url = `${process.env.NOMBA_BASE_URL}/v1/auth/token/issue`;
 
-  console.log("Trying to fetch this URL:", url);
-
   const clientId = process.env.NOMBA_CLIENT_ID;
   const clientSecret = process.env.NOMBA_PRIVATE_KEY;
   const accountId = process.env.NOMBA_ACCOUNT_ID;
@@ -39,7 +38,6 @@ export async function getNombaAccessToken() {
     !accountId ||
     !process.env.NOMBA_BASE_URL
   ) {
-    console.error("Missing one or more Nomba environment variables");
     throw new Error("Missing Nomba environment variables for auth");
   }
 
@@ -59,7 +57,6 @@ export async function getNombaAccessToken() {
     });
 
     if (!response.ok) {
-      console.error("Failed to get Nomba token:", await response.text());
       throw new Error("Could not authenticate with Nomba");
     }
 
@@ -118,7 +115,7 @@ export function verifyWebhookSignature(
 
 export async function verifyTransactionViaApi(
   reference: string,
-  type: "orderReference" | "transactionId" = "orderReference"
+  type: "orderReference" | "transactionId" | "orderId" = "orderReference"
 ) {
   const accessToken = await getNombaAccessToken();
   const accountId = process.env.NOMBA_ACCOUNT_ID;
@@ -147,26 +144,30 @@ export async function verifyTransactionViaApi(
 
   const data = await response.json();
 
-  console.log("Nomba Verify Response:", JSON.stringify(data));
+  const description = data.description?.toUpperCase() || "";
+  const isSuccessCode = data.code === "00";
+  const isSuccessDesc = ["SUCCESS", "SUCCESSFUL"].includes(description);
 
-  if (data.code === "00" && data.description === "SUCCESS") {
-    if (
-      data.data?.results &&
-      Array.isArray(data.data.results) &&
-      data.data.results.length > 0
-    ) {
-      const transaction = data.data.results[0];
+  if (isSuccessCode && isSuccessDesc) {
+    if (Array.isArray(data.data?.results) && data.data.results.length > 0) {
+      const transaction = data.data.results.find((tx: any) =>
+        ["SUCCESS", "SUCCESSFUL"].includes(tx.status?.toUpperCase())
+      );
 
-      if (transaction.status === "SUCCESS") {
-        return transaction;
-      }
+      if (transaction) return transaction;
     }
 
-    if (data.data && !Array.isArray(data.data) && data.data.status) {
-      return data.data;
+    if (data.data && !Array.isArray(data.data)) {
+      const status = data.data.status?.toUpperCase() || "";
+      if (
+        ["SUCCESS", "SUCCESSFUL", "TRUE"].includes(status) ||
+        data.data.status === true
+      ) {
+        return data.data;
+      }
     }
   }
 
-  console.log("Could not find a successful transaction in the response.");
+  console.log("Transaction validation failed or status was not SUCCESS");
   return null;
 }

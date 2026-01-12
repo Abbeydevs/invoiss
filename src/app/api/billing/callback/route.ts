@@ -8,9 +8,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const orderReference = searchParams.get("orderReference");
+    const orderId = searchParams.get("orderId");
 
-    console.log("--- PAYMENT CALLBACK TRIGGERED ---");
-    console.log("Ref:", orderReference);
+    console.log("--- CALLBACK START ---");
+    console.log(`Ref: ${orderReference}, ID: ${orderId}`);
 
     if (!orderReference) {
       return NextResponse.redirect(new URL("/dashboard/billing", request.url));
@@ -21,9 +22,9 @@ export async function GET(request: Request) {
       "orderReference"
     );
 
-    if (!transactionData) {
-      console.log("Verification with Ref failed. Trying Order ID...");
-      transactionData = await verifyTransactionViaApi("orderReference");
+    if (!transactionData && orderId) {
+      console.log("Ref verification failed. Retrying with Order ID...");
+      transactionData = await verifyTransactionViaApi(orderId, "orderId");
     }
 
     if (!transactionData) {
@@ -33,14 +34,14 @@ export async function GET(request: Request) {
       );
     }
 
-    if (transactionData.status === "SUCCESS") {
+    const status = transactionData.status?.toString().toUpperCase();
+
+    if (["SUCCESS", "SUCCESSFUL"].includes(status)) {
       const parts = orderReference.split("-");
 
       if (parts[0] === "SUB" && parts[1]) {
         const userId = parts[1];
-
         const amountPaid = parseFloat(transactionData.amount);
-
         const isYearly = amountPaid > 50000;
         const daysToAdd = isYearly ? 365 : 30;
         const billingCycle = isYearly ? "YEARLY" : "MONTHLY";
@@ -55,8 +56,8 @@ export async function GET(request: Request) {
             ),
           },
         });
-        console.log(`SUCCESS: User ${userId} upgraded to ${billingCycle}`);
 
+        console.log(`SUCCESS: User ${userId} upgraded to ${billingCycle}`);
         return NextResponse.redirect(
           new URL("/dashboard/billing/success", request.url)
         );
@@ -64,12 +65,12 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(
-      new URL("/dashboard/billing?payment=failed", request.url)
+      new URL("/dashboard/billing/failed", request.url)
     );
   } catch (error) {
     console.error("Callback error:", error);
     return NextResponse.redirect(
-      new URL("/dashboard/billing?error=true", request.url)
+      new URL("/dashboard/billing/failed", request.url)
     );
   }
 }
