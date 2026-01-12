@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,7 +13,9 @@ import {
   Crown,
   CheckCircle2,
   Building2,
-  Image,
+  Image as ImageIcon,
+  AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -41,7 +42,7 @@ import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { ImageUpload } from "@/components/common/ImageUpload";
 import { BillingModal } from "@/components/billing/BillingModal";
 import { Profile } from "@/lib/types";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 
 async function getProfile(): Promise<Profile> {
   const response = await fetch("/api/profile");
@@ -115,12 +116,16 @@ export default function SettingsPage() {
     mutation.mutate(values);
   };
 
-  const getDaysRemaining = (dateString: string) => {
-    const end = new Date(dateString);
-    const now = new Date();
-    const diff = end.getTime() - now.getTime();
-    return Math.ceil(diff / (1000 * 3600 * 24));
-  };
+  const today = new Date();
+  const subscriptionEnd = profileData?.subscriptionEndsAt
+    ? new Date(profileData.subscriptionEndsAt)
+    : null;
+
+  const isGracePeriod = isPro && subscriptionEnd && subscriptionEnd < today;
+
+  const daysDifference = subscriptionEnd
+    ? Math.abs(differenceInDays(subscriptionEnd, today))
+    : 0;
 
   return (
     <DashboardLayout
@@ -130,52 +135,72 @@ export default function SettingsPage() {
       <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <Card
           className={`border-0 shadow-xl overflow-hidden transition-all duration-300 ${
-            isPro
-              ? "bg-linear-to-br from-blue-50 via-white to-purple-50"
-              : "bg-linear-to-br from-gray-50 to-white"
+            isGracePeriod
+              ? "bg-linear-to-br from-red-50 via-white to-orange-50 border-red-200 ring-2 ring-red-100"
+              : isPro
+                ? "bg-linear-to-br from-blue-50 via-white to-purple-50"
+                : "bg-linear-to-br from-gray-50 to-white"
           }`}
         >
           <CardHeader className="pb-4 relative overflow-hidden">
-            {isPro && (
+            {isPro && !isGracePeriod && (
               <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-yellow-400/20 to-purple-400/20 rounded-full blur-3xl" />
             )}
+
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative">
               <div className="flex items-start gap-3">
                 <div
                   className={`p-3 rounded-xl ${
-                    isPro
-                      ? "bg-linear-to-br from-[#1451cb] to-purple-600 shadow-lg"
-                      : "bg-gray-100"
+                    isGracePeriod
+                      ? "bg-red-100 text-red-600"
+                      : isPro
+                        ? "bg-linear-to-br from-[#1451cb] to-purple-600 shadow-lg text-white"
+                        : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  {isPro ? (
-                    <Crown className="h-6 w-6 text-white" />
+                  {isGracePeriod ? (
+                    <AlertTriangle className="h-6 w-6" />
+                  ) : isPro ? (
+                    <Crown className="h-6 w-6" />
                   ) : (
-                    <Sparkles className="h-6 w-6 text-gray-400" />
+                    <Sparkles className="h-6 w-6" />
                   )}
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold mb-1">
-                    {isPro ? "Pro Plan" : "Basic Plan"}
+                  <CardTitle
+                    className={`text-2xl font-bold mb-1 ${
+                      isGracePeriod ? "text-red-700" : ""
+                    }`}
+                  >
+                    {isGracePeriod
+                      ? "Subscription Expired"
+                      : isPro
+                        ? "Pro Plan"
+                        : "Basic Plan"}
                   </CardTitle>
                   <CardDescription className="text-base">
-                    {isPro
-                      ? "Unlimited access to all premium features"
-                      : "Limited access with basic features"}
+                    {isGracePeriod
+                      ? "Your plan has expired. Please renew to avoid downgrade."
+                      : isPro
+                        ? "Unlimited access to all premium features"
+                        : "Limited access with basic features"}
                   </CardDescription>
                 </div>
               </div>
+
               <div className="flex items-center gap-3">
                 <Badge
                   className={`${
-                    isPro
-                      ? "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 shadow-md"
-                      : "bg-gray-500 hover:bg-gray-600"
+                    isGracePeriod
+                      ? "bg-red-600 hover:bg-red-700 shadow-md animate-pulse"
+                      : isPro
+                        ? "bg-linear-to-r from-[#1451cb] to-purple-600 shadow-md"
+                        : "bg-gray-500 hover:bg-gray-600"
                   } text-white px-4 py-1.5 text-sm font-semibold`}
                 >
-                  {isPro ? "PRO" : "BASIC"}
+                  {isGracePeriod ? "ACTION REQUIRED" : isPro ? "PRO" : "BASIC"}
                 </Badge>
-                {isPro && profileData?.billingCycle && (
+                {isPro && !isGracePeriod && profileData?.billingCycle && (
                   <Badge
                     variant="outline"
                     className="border-blue-200 text-blue-700 bg-blue-50"
@@ -186,6 +211,7 @@ export default function SettingsPage() {
               </div>
             </div>
           </CardHeader>
+
           <CardContent className="pt-4 pb-6">
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-3">
@@ -226,43 +252,74 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex flex-col justify-center items-center sm:items-end gap-4">
-                {!isPro && (
-                  <div className="text-center sm:text-right">
-                    <p className="text-sm text-gray-500 mb-2">
-                      Unlock all features
-                    </p>
+                {(!isPro || isGracePeriod) && (
+                  <div className="text-center sm:text-right w-full sm:w-auto">
+                    {!isPro && (
+                      <p className="text-sm text-gray-500 mb-2">
+                        Unlock all features
+                      </p>
+                    )}
                     <Button
                       onClick={() => setShowBillingModal(true)}
                       size="lg"
-                      className="bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
+                      className={`${
+                        isGracePeriod
+                          ? "bg-red-600 hover:bg-red-700 text-white w-full" // Red Button for Grace
+                          : "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 text-white w-full px-8"
+                      } shadow-lg transition-all duration-300`}
                     >
-                      <Crown className="h-4 w-4 mr-2" />
-                      Upgrade to Pro
+                      {isGracePeriod ? (
+                        <>
+                          <AlertCircle className="h-4 w-4 mr-2" />
+                          Pay Now & Restore
+                        </>
+                      ) : (
+                        <>
+                          <Crown className="h-4 w-4 mr-2" />
+                          Upgrade to Pro
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
 
-                {isPro && profileData?.subscriptionEndsAt && (
-                  <div className="text-center sm:text-right p-4 bg-white/60 rounded-xl border border-blue-100/50 shadow-sm w-full sm:w-auto">
-                    <p className="text-sm text-gray-500 mb-1">
-                      {profileData.billingCycle === "YEARLY"
-                        ? "Renews Yearly on"
-                        : "Renews Monthly on"}
+                {isPro && subscriptionEnd && (
+                  <div
+                    className={`text-center sm:text-right p-4 rounded-xl border shadow-sm w-full sm:w-auto ${
+                      isGracePeriod
+                        ? "bg-red-50 border-red-200"
+                        : "bg-white/60 border-blue-100/50"
+                    }`}
+                  >
+                    <p
+                      className={`text-sm mb-1 ${
+                        isGracePeriod
+                          ? "text-red-600 font-bold"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {isGracePeriod
+                        ? "Expired on"
+                        : profileData?.billingCycle === "YEARLY"
+                          ? "Renews Yearly on"
+                          : "Renews Monthly on"}
                     </p>
                     <p className="text-lg font-bold text-gray-900">
-                      {format(
-                        new Date(profileData.subscriptionEndsAt),
-                        "MMMM d, yyyy"
-                      )}
+                      {format(subscriptionEnd, "MMMM d, yyyy")}
                     </p>
-                    <p className="text-xs text-blue-600 font-medium mt-1">
-                      {getDaysRemaining(profileData.subscriptionEndsAt)} days
-                      remaining
+                    <p
+                      className={`text-xs font-medium mt-1 ${
+                        isGracePeriod ? "text-red-600" : "text-blue-600"
+                      }`}
+                    >
+                      {isGracePeriod
+                        ? `${daysDifference} day(s) ago`
+                        : `${daysDifference} days remaining`}
                     </p>
                   </div>
                 )}
 
-                {isPro && (
+                {isPro && !isGracePeriod && (
                   <div className="text-center sm:text-right">
                     <p className="text-sm text-green-600 font-medium mb-2 flex items-center gap-2 justify-center sm:justify-end">
                       <CheckCircle2 className="h-4 w-4" />
@@ -282,7 +339,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Branding Card */}
         <Card className="border-0 shadow-xl overflow-hidden bg-white">
           <CardHeader className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white">
             <div className="flex items-center gap-3">
@@ -330,7 +386,7 @@ export default function SettingsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                          <Image className="h-4 w-4" />
+                          <ImageIcon className="h-4 w-4" />
                           Business Logo
                         </FormLabel>
                         <FormControl>
