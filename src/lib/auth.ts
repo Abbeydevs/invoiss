@@ -52,6 +52,7 @@ export const authOptions: NextAuthOptions = {
           name: user.profile?.businessName || user.profile?.firstName || null,
           planType: user.planType,
           accountType: user.accountType,
+          role: user.role,
         };
       },
     }),
@@ -62,6 +63,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.planType = user.planType;
         token.accountType = user.accountType;
+        token.role = user.role;
       }
 
       if (trigger === "update") {
@@ -81,6 +83,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.planType = token.planType as string;
         session.user.accountType = token.accountType as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

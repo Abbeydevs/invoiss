@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -67,6 +68,33 @@ async function main() {
     },
   });
 
+  const adminEmail = "admin@invoiss.com";
+  const adminPassword = await hash("Admin123!", 12);
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      role: "ADMIN",
+      planType: "PRO",
+    },
+    create: {
+      email: adminEmail,
+      password: adminPassword,
+      role: "ADMIN",
+      planType: "PRO",
+      accountType: "COMPANY",
+      emailVerified: new Date(),
+      profile: {
+        create: {
+          firstName: "Super",
+          lastName: "Admin",
+          businessName: "Invoiss HQ",
+        },
+      },
+    },
+  });
+
+  console.log(`Created Admin User: ${adminUser.email}`);
   console.log("Seeding finished.");
 }
 
