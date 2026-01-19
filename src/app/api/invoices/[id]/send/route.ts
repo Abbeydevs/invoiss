@@ -26,6 +26,19 @@ export async function POST(
     const { id: invoiceId } = await params;
     const userId = session.user.id;
 
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+
+    if (!file) {
+      return NextResponse.json(
+        { error: "PDF file is missing" },
+        { status: 400 }
+      );
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfBuffer = Buffer.from(arrayBuffer);
+
     const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
@@ -51,7 +64,6 @@ export async function POST(
     const customerName = invoice.customer?.name || invoice.billToName;
     const customerEmail = invoice.customer?.email || invoice.billToEmail;
     const businessName = profile?.businessName || "Your Business";
-
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const invoiceViewUrl = `${appUrl}/public/invoice/${invoice.id}`;
 
@@ -69,6 +81,12 @@ export async function POST(
         businessLogo: profile?.logoUrl,
         invoiceViewUrl: invoiceViewUrl,
       }) as React.ReactElement,
+      attachments: [
+        {
+          filename: `${invoice.invoiceNumber}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
 
     if (!success) {

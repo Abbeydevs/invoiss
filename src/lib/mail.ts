@@ -12,6 +12,7 @@ type SendEmailProps = {
   subject: string;
   react: React.ReactElement;
   senderName?: string;
+  attachments?: { filename: string; content: Buffer }[];
 };
 
 export async function sendEmail({
@@ -19,6 +20,7 @@ export async function sendEmail({
   subject,
   react,
   senderName,
+  attachments,
 }: SendEmailProps) {
   const fromName = senderName || "Invoiss";
 
@@ -28,6 +30,7 @@ export async function sendEmail({
       to,
       subject,
       react,
+      attachments,
     });
 
     if (error) {

@@ -25,10 +25,21 @@ interface InvoiceActionsProps {
   invoice: InvoiceDetail;
 }
 
-async function sendInvoice(invoiceId: string) {
+async function sendInvoiceWithPdf({
+  invoiceId,
+  pdfBlob,
+}: {
+  invoiceId: string;
+  pdfBlob: Blob;
+}) {
+  const formData = new FormData();
+  formData.append("file", pdfBlob, "invoice.pdf");
+
   const response = await fetch(`/api/invoices/${invoiceId}/send`, {
     method: "POST",
+    body: formData,
   });
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || "Failed to send invoice");
@@ -58,6 +69,7 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
 
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const canRecordPayment =
@@ -66,7 +78,7 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     invoice.balanceDue > 0;
 
   const sendMutation = useMutation({
-    mutationFn: sendInvoice,
+    mutationFn: sendInvoiceWithPdf,
     onSuccess: () => {
       toast.success("Invoice sent successfully!");
       queryClient.invalidateQueries({ queryKey: ["invoice", invoice.id] });
@@ -74,6 +86,9 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     },
     onError: (error) => {
       toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsSending(false);
     },
   });
 
@@ -89,52 +104,31 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     },
   });
 
-  const handleSend = () => {
-    if (!isProUser) {
-      setIsUpgradeModalOpen(true);
-      return;
-    }
-    sendMutation.mutate(invoice.id);
-  };
+  const generatePdfBlob = async () => {
+    const originalElement = document.getElementById("invoice-preview-capture");
+    if (!originalElement) throw new Error("Preview not found");
 
-  const handleMarkAsSent = () => {
-    statusMutation.mutate({ id: invoice.id, status: "SENT" });
-  };
+    const ghostContainer = document.createElement("div");
+    ghostContainer.style.position = "absolute";
+    ghostContainer.style.top = "-9999px";
+    ghostContainer.style.left = "0";
+    ghostContainer.style.width = "800px";
+    document.body.appendChild(ghostContainer);
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
+    const clonedElement = originalElement.cloneNode(true) as HTMLElement;
+    clonedElement.style.margin = "0";
+    clonedElement.style.padding = "0";
+    clonedElement.style.width = "800px";
+    clonedElement.style.minHeight = "auto";
+    ghostContainer.appendChild(clonedElement);
 
     try {
-      const originalElement = document.getElementById(
-        "invoice-preview-capture"
-      );
-      if (!originalElement) throw new Error("Preview not found");
-
-      const ghostContainer = document.createElement("div");
-      ghostContainer.style.position = "absolute";
-      ghostContainer.style.top = "-9999px";
-      ghostContainer.style.left = "0";
-      ghostContainer.style.width = "800px";
-      document.body.appendChild(ghostContainer);
-
-      const clonedElement = originalElement.cloneNode(true) as HTMLElement;
-
-      clonedElement.style.margin = "0";
-      clonedElement.style.padding = "0";
-      clonedElement.style.width = "800px";
-      clonedElement.style.minHeight = "auto";
-      clonedElement.className = "";
-
-      ghostContainer.appendChild(clonedElement);
-
       const imgData = await toPng(clonedElement, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
         width: 800,
       });
-
-      document.body.removeChild(ghostContainer);
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -146,8 +140,42 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
       const pdfHeight = (clonedElement.scrollHeight * pdfWidth) / 800;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${invoice.invoiceNumber}.pdf`);
 
+      return pdf.output("blob");
+    } finally {
+      document.body.removeChild(ghostContainer);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!isProUser) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      toast.info("Generating PDF and sending...");
+      const pdfBlob = await generatePdfBlob();
+
+      sendMutation.mutate({ invoiceId: invoice.id, pdfBlob });
+    } catch (error) {
+      console.error("Failed to generate PDF for sending", error);
+      toast.error("Failed to generate PDF. Please try again.");
+      setIsSending(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const pdfBlob = await generatePdfBlob();
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${invoice.invoiceNumber}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
       toast.success("PDF downloaded perfectly!");
     } catch (error) {
       console.error("Download failed:", error);
@@ -155,6 +183,10 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const handleMarkAsSent = () => {
+    statusMutation.mutate({ id: invoice.id, status: "SENT" });
   };
 
   return (
@@ -225,15 +257,15 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
               variant="default"
               size="sm"
               onClick={handleSend}
-              disabled={sendMutation.isPending}
+              disabled={isSending}
               className="bg-[#1451cb] hover:bg-[#1451cb]/90"
             >
-              {sendMutation.isPending ? (
+              {isSending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              Send Invoice
+              {isSending ? "Sending..." : "Send Invoice"}
             </Button>
           </div>
         </div>

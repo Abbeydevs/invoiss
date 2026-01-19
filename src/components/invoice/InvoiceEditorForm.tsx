@@ -192,36 +192,40 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                         <CommandEmpty>No customers found.</CommandEmpty>
                         <CommandList>
                           <CommandGroup>
-                            {customers?.map((customer: Customer) => (
-                              <CommandItem
-                                value={customer.name}
-                                key={customer.id}
-                                onSelect={() => {
-                                  form.setValue("customerId", customer.id);
-                                  form.setValue("billToName", customer.name);
-                                  form.setValue("billToEmail", customer.email);
-                                  form.setValue(
-                                    "billToPhone",
-                                    customer.phone || ""
-                                  );
-                                  form.setValue(
-                                    "billToAddress",
-                                    customer.address || ""
-                                  );
-                                  setCustomerComboboxOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === customer.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {customer.name}
-                              </CommandItem>
-                            ))}
+                            {Array.isArray(customers) &&
+                              customers?.map((customer: Customer) => (
+                                <CommandItem
+                                  value={customer.name}
+                                  key={customer.id}
+                                  onSelect={() => {
+                                    form.setValue("customerId", customer.id);
+                                    form.setValue("billToName", customer.name);
+                                    form.setValue(
+                                      "billToEmail",
+                                      customer.email
+                                    );
+                                    form.setValue(
+                                      "billToPhone",
+                                      customer.phone || ""
+                                    );
+                                    form.setValue(
+                                      "billToAddress",
+                                      customer.address || ""
+                                    );
+                                    setCustomerComboboxOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === customer.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {customer.name}
+                                </CommandItem>
+                              ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>
