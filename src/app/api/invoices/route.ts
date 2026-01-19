@@ -63,35 +63,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = localInvoiceApiSchema.parse(body);
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const prefix = `INV-${year}${month}-`;
-
     const lastInvoice = await prisma.invoice.findFirst({
-      where: {
-        invoiceNumber: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      select: { invoiceNumber: true },
     });
 
     let nextNumber = 1;
-    if (lastInvoice) {
-      const lastSequentialPart = lastInvoice.invoiceNumber.split("-")[2];
-      const lastNumber = parseInt(lastSequentialPart, 10);
-      nextNumber = lastNumber + 1;
+
+    if (lastInvoice && lastInvoice.invoiceNumber.startsWith("INV-")) {
+      const split = lastInvoice.invoiceNumber.split("-");
+      const numberPart = parseInt(split[1]);
+
+      if (!isNaN(numberPart)) {
+        nextNumber = numberPart + 1;
+      }
     }
 
-    const invoiceNumber = `${prefix}${String(nextNumber).padStart(4, "0")}`;
+    const newInvoiceNumber = `INV-${nextNumber.toString().padStart(4, "0")}`;
 
     const invoice = await prisma.invoice.create({
       data: {
+        invoiceNumber: newInvoiceNumber,
         userId: session.user.id,
-        invoiceNumber,
         customerId: validatedData.customerId,
         bankAccountId: validatedData.bankAccountId,
         templateId: validatedData.templateId,
@@ -141,15 +135,6 @@ export async function POST(request: Request) {
         customer: true,
         bankAccount: true,
         paymentMilestones: true,
-      },
-    });
-
-    await prisma.activity.create({
-      data: {
-        userId: session.user.id,
-        invoiceId: invoice.id,
-        action: "invoice_created",
-        description: `Created invoice ${invoiceNumber}`,
       },
     });
 
