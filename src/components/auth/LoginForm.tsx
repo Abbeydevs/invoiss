@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -64,8 +64,16 @@ export function LoginForm() {
       }
 
       toast.success("Welcome back!");
-      router.push("/dashboard");
+
+      const session = await getSession();
+
       router.refresh();
+
+      if (session?.user?.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
