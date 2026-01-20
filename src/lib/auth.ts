@@ -53,6 +53,7 @@ export const authOptions: NextAuthOptions = {
             console.error("Impersonation failed:", error);
           }
         }
+
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
@@ -68,6 +69,14 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           throw new Error("Invalid email or password");
+        }
+
+        const settings = await prisma.systemSettings.findFirst();
+
+        if (settings?.maintenanceMode && user.role !== "ADMIN") {
+          throw new Error(
+            "System is under maintenance. Please try again later."
+          );
         }
 
         if (user.isBanned) {

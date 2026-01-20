@@ -52,7 +52,14 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        toast.error("Invalid email or password");
+        if (
+          result.error.includes("maintenance") ||
+          result.error.includes("suspended")
+        ) {
+          toast.error(result.error);
+        } else {
+          toast.error("Invalid email or password");
+        }
         return;
       }
 

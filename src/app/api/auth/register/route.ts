@@ -18,6 +18,32 @@ export async function POST(request: Request) {
 
     const validatedData = registerSchema.parse(body);
 
+    const settings = await prisma.systemSettings.findFirst();
+
+    if (settings) {
+      if (!settings.registrationOpen) {
+        return NextResponse.json(
+          {
+            error:
+              "New registrations are currently closed by the administrator.",
+          },
+          { status: 403 }
+        );
+      }
+
+      const emailDomain = validatedData.email.split("@")[1].toLowerCase();
+      const isBlocked = settings.blockedDomains.some((blocked) =>
+        emailDomain.includes(blocked.toLowerCase().trim())
+      );
+
+      if (isBlocked) {
+        return NextResponse.json(
+          { error: "This email domain is not allowed on our platform." },
+          { status: 400 }
+        );
+      }
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: {
         email: validatedData.email,
