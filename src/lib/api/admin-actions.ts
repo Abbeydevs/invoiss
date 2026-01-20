@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { sign } from "jsonwebtoken";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -92,4 +93,22 @@ export async function resetAccount(userId: string) {
 
   revalidatePath(`/admin/users/${userId}`);
   return { success: true };
+}
+
+export async function impersonateUser(userId: string) {
+  await requireAdmin();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  const token = sign(
+    { email: user.email, isImpersonation: true },
+    process.env.NEXTAUTH_SECRET!,
+    { expiresIn: "60s" }
+  );
+
+  return { token, email: user.email };
 }

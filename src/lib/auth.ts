@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { verify } from "jsonwebtoken";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -18,8 +19,40 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        impersonationToken: { label: "Token", type: "text" },
       },
       async authorize(credentials) {
+        if (credentials?.impersonationToken) {
+          try {
+            const decoded = verify(
+              credentials.impersonationToken,
+              process.env.NEXTAUTH_SECRET!
+            ) as { email: string; isImpersonation: boolean };
+
+            if (decoded.email && decoded.isImpersonation) {
+              const user = await prisma.user.findUnique({
+                where: { email: decoded.email },
+                include: { profile: true },
+              });
+
+              if (user) {
+                return {
+                  id: user.id,
+                  email: user.email,
+                  name:
+                    user.profile?.businessName ||
+                    user.profile?.firstName ||
+                    null,
+                  planType: user.planType,
+                  accountType: user.accountType,
+                  role: user.role,
+                };
+              }
+            }
+          } catch (error) {
+            console.error("Impersonation failed:", error);
+          }
+        }
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }

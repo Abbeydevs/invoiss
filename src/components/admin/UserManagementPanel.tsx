@@ -29,15 +29,18 @@ import {
   Loader2,
   RotateCcw,
   ArrowDownCircle,
+  LogIn,
 } from "lucide-react";
 import {
   updateUserPlan,
   extendTrial,
   toggleBanUser,
   resetAccount,
+  impersonateUser,
 } from "@/lib/api/admin-actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { signIn } from "next-auth/react";
 
 interface UserManagementPanelProps {
   userId: string;
@@ -126,6 +129,29 @@ export function UserManagementPanel({
       toast.success("Account has been reset to factory settings");
     } catch {
       toast.error("Failed to reset account");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const executeImpersonation = async () => {
+    setIsLoading(true);
+    try {
+      const { token, email } = await impersonateUser(userId);
+
+      const result = await signIn("credentials", {
+        redirect: true,
+        callbackUrl: "/dashboard",
+        email: email,
+        password: "impersonation-mode",
+        impersonationToken: token,
+      });
+
+      if (result?.error) {
+        toast.error("Impersonation failed");
+      }
+    } catch {
+      toast.error("Failed to start impersonation");
     } finally {
       setIsLoading(false);
     }
@@ -284,7 +310,35 @@ export function UserManagementPanel({
             Quick Actions
           </CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                disabled={isLoading}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white mb-2"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Log in as User
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Enter Impersonation Mode?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You are about to log out of the Admin panel and log in as this
+                  user. You will see exactly what they see. To return, you must
+                  log out and log back in as Admin.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={executeImpersonation}>
+                  Proceed to Login
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <div className="space-y-2">
             <label className="text-sm font-medium">Extend Trial</label>
             <div className="grid grid-cols-3 gap-2">
