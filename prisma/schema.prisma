@@ -433,6 +433,15 @@ model SystemBroadcast {
   updatedAt DateTime      @updatedAt
 }
 
+model SystemSettings {
+  id               String   @id @default(cuid())
+  maintenanceMode  Boolean  @default(false)
+  registrationOpen Boolean  @default(true)
+  blockedDomains   String[] @default([])
+
+  updatedAt DateTime @updatedAt
+}
+
 enum BroadcastType {
   INFO
   WARNING
