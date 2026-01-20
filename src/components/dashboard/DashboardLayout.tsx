@@ -3,6 +3,7 @@
 import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { MobileRestriction } from "../common/MobileRestriction";
+import { GlobalAlert } from "./GlobalAlert";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export function DashboardLayout({
 
         <main className="p-6">
           <div className="max-w-7xl mx-auto">
+            <GlobalAlert />
             <div className="mb-6 flex flex-col sm:flex-row items-start justify-between gap-4">
               <div className="space-y-1">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">

@@ -424,6 +424,21 @@ model Activity {
   @@index([createdAt])
 }
 
+model SystemBroadcast {
+  id        String        @id @default(cuid())
+  message   String
+  type      BroadcastType @default(INFO)
+  isActive  Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum BroadcastType {
+  INFO
+  WARNING
+  CRITICAL
+}
+
 // ===================================
 // ENUMS
 // ===================================

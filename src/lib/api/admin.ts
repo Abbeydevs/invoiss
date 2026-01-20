@@ -7,10 +7,6 @@ import { authOptions } from "@/lib/auth";
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
 
-  console.log("DEBUGGING ADMIN ACCESS:");
-  console.log("User Email:", session?.user?.email);
-  console.log("User Role:", session?.user?.role);
-
   if (session?.user?.role !== "ADMIN") {
     throw new Error("Unauthorized: Admin access required");
   }
