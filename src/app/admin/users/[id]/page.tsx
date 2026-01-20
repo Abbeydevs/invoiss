@@ -83,15 +83,14 @@ export default async function UserDetailPage({
         </div>
       </div>
 
-      {/* MANAGEMENT CONTROLS */}
       <UserManagementPanel
         userId={user.id}
         currentPlan={user.planType}
         subscriptionEndsAt={user.subscriptionEndsAt}
         trialEndsAt={user.trialEndsAt}
+        isBanned={user.isBanned}
       />
 
-      {/* RECENT INVOICES */}
       <div className="bg-white rounded-lg border shadow-sm p-6">
         <h3 className="font-bold text-lg mb-4">
           Recent Invoices ({user._count.invoices})

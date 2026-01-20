@@ -20,6 +20,8 @@ model User {
 
   role UserRole @default(USER)
 
+  isBanned Boolean @default(false)
+
   accountType        AccountType @default(INDIVIDUAL)
   planType           PlanType    @default(BASIC)
   billingCycle       String?     @default("MONTHLY")

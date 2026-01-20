@@ -21,11 +21,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { CalendarIcon, Crown, ShieldAlert, Zap, Loader2 } from "lucide-react";
+import {
+  CalendarIcon,
+  Crown,
+  ShieldAlert,
+  Zap,
+  Loader2,
+  RotateCcw,
+  ArrowDownCircle,
+} from "lucide-react";
 import {
   updateUserPlan,
   extendTrial,
   toggleBanUser,
+  resetAccount,
 } from "@/lib/api/admin-actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -35,12 +44,14 @@ interface UserManagementPanelProps {
   currentPlan: string;
   subscriptionEndsAt: Date | null;
   trialEndsAt: Date | null;
+  isBanned: boolean;
 }
 
 export function UserManagementPanel({
   userId,
   currentPlan,
   subscriptionEndsAt,
+  isBanned,
 }: UserManagementPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [date, setDate] = useState<Date | undefined>(
@@ -67,19 +78,6 @@ export function UserManagementPanel({
     }
   };
 
-  const executeDowngrade = async () => {
-    setIsLoading(true);
-    try {
-      await updateUserPlan({ userId, planType: "BASIC", expiryDate: null });
-      toast.success("User downgraded to Basic");
-      setDate(undefined);
-    } catch {
-      toast.error("Failed to downgrade");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const executeGrantLifetime = async () => {
     setIsLoading(true);
     const lifetime = new Date("2099-12-31");
@@ -94,13 +92,40 @@ export function UserManagementPanel({
     }
   };
 
-  const executeBan = async () => {
+  const executeDowngrade = async () => {
     setIsLoading(true);
     try {
-      await toggleBanUser(userId, true);
-      toast.success("User has been banned/demoted");
+      await updateUserPlan({ userId, planType: "BASIC", expiryDate: null });
+      toast.success("User downgraded to Basic");
+      setDate(undefined);
     } catch {
-      toast.error("Failed to ban user");
+      toast.error("Failed to downgrade");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const executeSuspend = async () => {
+    setIsLoading(true);
+    try {
+      await toggleBanUser(userId, !isBanned);
+      toast.success(
+        isBanned ? "User Access Restored" : "User Access Suspended"
+      );
+    } catch {
+      toast.error("Failed to update suspension status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const executeReset = async () => {
+    setIsLoading(true);
+    try {
+      await resetAccount(userId);
+      toast.success("Account has been reset to factory settings");
+    } catch {
+      toast.error("Failed to reset account");
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +133,6 @@ export function UserManagementPanel({
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {/* MANUAL SUBSCRIPTION CARD */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -156,7 +180,6 @@ export function UserManagementPanel({
               )}
             </Button>
 
-            {/* LIFETIME ACCESS DIALOG */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="secondary" disabled={isLoading}>
@@ -168,7 +191,7 @@ export function UserManagementPanel({
                   <AlertDialogTitle>Grant Lifetime Access?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will set the user&apos;s subscription to expire in the
-                    year 2099. They will have full Pro access until then.
+                    year 2099.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -182,24 +205,24 @@ export function UserManagementPanel({
           </div>
 
           {currentPlan === "PRO" && (
-            // DOWNGRADE DIALOG
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="destructive"
                   disabled={isLoading}
-                  className="w-full"
+                  className="w-full mt-2"
                 >
+                  <ArrowDownCircle className="h-4 w-4 mr-2" />
                   Downgrade to Basic
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Downgrade User?</AlertDialogTitle>
+                  <AlertDialogTitle>Downgrade User to Basic?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will immediately remove Pro access. If they have an
-                    active paid subscription, you should cancel that first in
-                    the Payment settings.
+                    This will remove Pro features but{" "}
+                    <strong>keep their data</strong>. If they have an active
+                    paid subscription, you should cancel that manually first.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -214,10 +237,46 @@ export function UserManagementPanel({
               </AlertDialogContent>
             </AlertDialog>
           )}
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={isLoading}
+                className="w-full text-orange-600 border-orange-200 hover:bg-orange-50"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset Account (Wipe Data)
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-orange-600">
+                  Factory Reset User?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  <span className="font-bold block mb-2">
+                    Warning: This cannot be undone.
+                  </span>
+                  This will delete ALL invoices, customers, and data for this
+                  user. They will be downgraded to the Basic plan and start
+                  fresh.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={executeReset}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Confirm Reset
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
 
-      {/* QUICK ACTIONS CARD */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -242,36 +301,54 @@ export function UserManagementPanel({
           </div>
 
           <div className="pt-4 border-t">
-            {/* BAN USER DIALOG */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  variant="ghost"
-                  className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                  variant={isBanned ? "default" : "ghost"}
+                  className={cn(
+                    "w-full",
+                    isBanned
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "text-red-500 hover:text-red-600 hover:bg-red-50"
+                  )}
                 >
-                  <ShieldAlert className="h-4 w-4 mr-2" />
-                  Ban / Suspend User
+                  {isBanned ? (
+                    <>
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Unban / Restore Access
+                    </>
+                  ) : (
+                    <>
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Suspend User (Ban Access)
+                    </>
+                  )}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-red-600">
-                    Ban User Account?
+                  <AlertDialogTitle
+                    className={isBanned ? "text-green-600" : "text-red-600"}
+                  >
+                    {isBanned ? "Restore User Access?" : "Suspend User Access?"}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This is a destructive action. It will strip the user of all
-                    Pro privileges and reset their plan to Basic immediately.
-                    (In a real production app, you might want to prevent login
-                    entirely).
+                    {isBanned
+                      ? "This will allow the user to log in to their account again."
+                      : "This will immediately prevent the user from logging in. They will see a suspension message."}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={executeBan}
-                    className="bg-red-600 hover:bg-red-700"
+                    onClick={executeSuspend}
+                    className={
+                      isBanned
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }
                   >
-                    Ban User
+                    {isBanned ? "Restore Access" : "Suspend User"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

@@ -55,19 +55,40 @@ export async function extendTrial(userId: string, days: number) {
   return { success: true };
 }
 
+// Suspend account helper function
 export async function toggleBanUser(userId: string, shouldBan: boolean) {
   await requireAdmin();
 
-  if (shouldBan) {
-    await prisma.user.update({
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      isBanned: shouldBan,
+    },
+  });
+
+  revalidatePath(`/admin/users/${userId}`);
+  return { success: true };
+}
+
+export async function resetAccount(userId: string) {
+  await requireAdmin();
+
+  await prisma.$transaction([
+    prisma.invoice.deleteMany({ where: { userId } }),
+    prisma.customer.deleteMany({ where: { userId } }),
+    prisma.bankAccount.deleteMany({ where: { userId } }),
+    prisma.activity.deleteMany({ where: { userId } }),
+    prisma.wallet.deleteMany({ where: { userId } }),
+
+    prisma.user.update({
       where: { id: userId },
       data: {
         planType: "BASIC",
-        subscriptionEndsAt: null,
         trialEndsAt: null,
+        subscriptionEndsAt: null,
       },
-    });
-  }
+    }),
+  ]);
 
   revalidatePath(`/admin/users/${userId}`);
   return { success: true };
