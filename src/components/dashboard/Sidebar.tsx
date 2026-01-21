@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { BillingModal } from "../billing/BillingModal";
+import Image from "next/image";
 
 const navigation = [
   {
@@ -62,7 +63,6 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
       <Button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md hover:shadow-lg transition-all"
@@ -70,7 +70,6 @@ export function Sidebar() {
         <Menu className="h-6 w-6 text-gray-700" />
       </Button>
 
-      {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
@@ -78,20 +77,24 @@ export function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
           isCollapsed ? "w-20" : "w-72",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 shrink-0">
           {!isCollapsed && (
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg gradient-to-br from-[#1451cb] to-[#0ea5e9] flex items-center justify-center">
-                <span className="text-white font-bold text-xl">I</span>
+              <div className="relative w-9 h-9 md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/images/invoiss-logo.svg"
+                  alt="Invoiss Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
               <span className="font-bold text-xl text-gray-900">Invoiss</span>
             </Link>
@@ -103,7 +106,7 @@ export function Sidebar() {
             <ChevronLeft
               className={cn(
                 "h-5 w-5 text-gray-600 transition-transform",
-                isCollapsed && "rotate-180"
+                isCollapsed && "rotate-180",
               )}
             />
           </Button>
@@ -131,7 +134,7 @@ export function Sidebar() {
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
                         isActive
                           ? "bg-[#1451cb] text-white shadow-lg shadow-blue-500/20"
-                          : "text-gray-700 hover:bg-gray-100"
+                          : "text-gray-700 hover:bg-gray-100",
                       )}
                     >
                       <Icon
@@ -139,7 +142,7 @@ export function Sidebar() {
                           "h-5 w-5 shrink-0",
                           isActive
                             ? "text-white"
-                            : "text-gray-500 group-hover:text-[#1451cb]"
+                            : "text-gray-500 group-hover:text-[#1451cb]",
                         )}
                       />
                       {!isCollapsed && (

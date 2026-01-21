@@ -40,7 +40,6 @@ export function DashboardHeader() {
         <div className="flex-1" />
 
         <div className="flex items-center gap-3">
-          {/* Create Invoice Button */}
           <Button
             onClick={() => router.push("/dashboard/invoices/new")}
             className="bg-[#1451cb] hover:bg-[#1451cb]/90 text-white shadow-lg shadow-blue-500/20"
@@ -48,7 +47,6 @@ export function DashboardHeader() {
             Create Invoice
           </Button>
 
-          {/* User Menu */}
           <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

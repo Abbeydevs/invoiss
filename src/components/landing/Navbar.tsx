@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,21 +31,21 @@ export function Navbar() {
         "sticky top-0 z-50 w-full transition-all duration-300",
         isScrolled
           ? "bg-white/80 backdrop-blur-lg shadow-md border-b border-gray-200/50"
-          : "bg-white/95 backdrop-blur-sm border-b border-gray-200"
+          : "bg-white/95 backdrop-blur-sm border-b border-gray-200",
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl bg-linear-to-br from-[#1451cb] to-[#0ea5e9] flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-              <span className="text-white font-bold text-xl md:text-2xl">
-                I
-              </span>
-              <div className="absolute -inset-0.5 bg-linear-to-br from-[#1451cb] to-[#0ea5e9] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative w-9 h-9 md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-105">
+              <Image
+                src="/images/invoiss-logo.svg"
+                alt="Invoiss Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="font-bold text-xl md:text-2xl text-gray-900 group-hover:text-[#1451cb] transition-colors">
-              Invoiss
-            </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
@@ -93,7 +94,7 @@ export function Navbar() {
                     "h-6 w-6 absolute inset-0 transition-all duration-300",
                     isMobileMenuOpen
                       ? "rotate-90 opacity-0"
-                      : "rotate-0 opacity-100"
+                      : "rotate-0 opacity-100",
                   )}
                 />
                 <X
@@ -101,7 +102,7 @@ export function Navbar() {
                     "h-6 w-6 absolute inset-0 transition-all duration-300",
                     isMobileMenuOpen
                       ? "rotate-0 opacity-100"
-                      : "-rotate-90 opacity-0"
+                      : "-rotate-90 opacity-0",
                   )}
                 />
               </div>
@@ -115,7 +116,7 @@ export function Navbar() {
           "md:hidden absolute top-16 md:top-20 left-0 w-full bg-white/95 backdrop-blur-lg shadow-xl border-t border-gray-200 transition-all duration-300 ease-in-out overflow-hidden",
           isMobileMenuOpen
             ? "max-h-screen opacity-100 translate-y-0"
-            : "max-h-0 opacity-0 -translate-y-4 pointer-events-none"
+            : "max-h-0 opacity-0 -translate-y-4 pointer-events-none",
         )}
       >
         <nav className="flex flex-col p-4 space-y-1">
@@ -124,7 +125,7 @@ export function Navbar() {
               key={link.label}
               href={link.href}
               className={cn(
-                "px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:bg-linear-to-r hover:from-blue-50 hover:to-purple-50 hover:text-[#1451cb] transition-all duration-200 animate-slide-in"
+                "px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:bg-linear-to-r hover:from-blue-50 hover:to-purple-50 hover:text-[#1451cb] transition-all duration-200 animate-slide-in",
               )}
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => setIsMobileMenuOpen(false)}

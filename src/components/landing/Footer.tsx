@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -16,10 +17,14 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#1451cb] to-[#0ea5e9] flex items-center justify-center">
-                <span className="text-white font-bold text-lg">I</span>
+              <div className="relative w-8 h-8 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/images/invoiss-logo.svg"
+                  alt="Invoiss Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <span className="font-bold text-xl text-white">Invoiss</span>
             </Link>
             <p className="text-sm max-w-xs leading-relaxed">
               Simple invoicing for modern Nigerian businesses. Get paid faster
