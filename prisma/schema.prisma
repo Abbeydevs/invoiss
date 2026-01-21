@@ -237,8 +237,8 @@ model Invoice {
   invoiceDate   DateTime @default(now())
   dueDate       DateTime
 
-  billToName    String
-  billToEmail   String
+  billToName    String?
+  billToEmail   String?
   billToPhone   String?
   billToAddress String?
 

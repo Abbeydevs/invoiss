@@ -32,7 +32,7 @@ export default function BankAccountsPage() {
       return <p className="text-center text-red-500">Error: {error.message}</p>;
     }
 
-    if (!data || data.bankAccounts.length === 0) {
+    if (!data || data?.bankAccounts?.length === 0) {
       return (
         <EmptyState
           icon={CreditCard}

@@ -128,7 +128,7 @@ function CreateInvoicePageContent() {
     ) {
       const milestoneTotal = data.milestones.reduce(
         (sum, m) => sum + (m.amount || 0),
-        0
+        0,
       );
 
       const difference = Math.abs(totals.totalAmount - milestoneTotal);
@@ -187,7 +187,7 @@ function CreateInvoicePageContent() {
       });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong"
+        error instanceof Error ? error.message : "Something went wrong",
       );
     } finally {
       setIsSubmitting(false);
@@ -244,7 +244,7 @@ function CreateInvoicePageContent() {
 
     template: Array.isArray(templateData?.defaultTemplates)
       ? templateData?.defaultTemplates.find(
-          (t) => t.id === watchedData.templateId
+          (t) => t.id === watchedData.templateId,
         ) || null
       : null,
     balanceDue: totals.totalAmount,

@@ -4,6 +4,7 @@ import { InvoiceDetail } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { ClassicPreview } from "./previews/ClassicPreview";
 import { ModernPreview } from "./previews/ModernPreview";
+import { BlankPreview } from "./previews/BlankPreview";
 import { useSession } from "next-auth/react";
 
 const Watermark = ({ isProUser }: { isProUser: boolean }) => {
@@ -27,11 +28,13 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
 
   let TemplateComponent;
   switch (templateId) {
+    case "custom":
+      TemplateComponent = <BlankPreview invoice={invoice} />;
+      break;
     case "modern":
       TemplateComponent = <ModernPreview invoice={invoice} />;
       break;
     case "classic":
-    case "custom":
     default:
       TemplateComponent = <ClassicPreview invoice={invoice} />;
   }

@@ -7,7 +7,7 @@ import { InvoiceEmailTemplate } from "@/components/email/InvoiceEmailTemplate";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function POST(
     if (session.user.planType !== "PRO") {
       return NextResponse.json(
         { error: "Upgrade to Pro to send invoices directly." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -32,7 +32,7 @@ export async function POST(
     if (!file) {
       return NextResponse.json(
         { error: "PDF file is missing" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,7 +68,7 @@ export async function POST(
     const invoiceViewUrl = `${appUrl}/public/invoice/${invoice.id}`;
 
     const { success, error } = await sendEmail({
-      to: customerEmail,
+      to: customerEmail || "",
       subject: `New Invoice ${invoice.invoiceNumber} from ${businessName}`,
       senderName: businessName,
       react: InvoiceEmailTemplate({
@@ -76,7 +76,7 @@ export async function POST(
         totalAmount: invoice.totalAmount,
         invoiceDate: invoice.invoiceDate,
         dueDate: invoice.dueDate,
-        customerName: customerName,
+        customerName: customerName || "",
         businessName: businessName,
         businessLogo: profile?.logoUrl,
         invoiceViewUrl: invoiceViewUrl,
@@ -93,7 +93,7 @@ export async function POST(
       console.error("Email Helper Failed:", error);
       return NextResponse.json(
         { error: "Failed to send email" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -115,7 +115,7 @@ export async function POST(
     console.error("Send invoice error:", error);
     return NextResponse.json(
       { error: "Something went wrong" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

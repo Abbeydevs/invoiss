@@ -20,7 +20,7 @@ const localInvoiceApiSchema = z.object({
         description: z.string().min(1),
         quantity: z.number().min(1),
         unitPrice: z.number().min(0),
-      })
+      }),
     )
     .min(1),
 
@@ -40,7 +40,7 @@ const localInvoiceApiSchema = z.object({
         amount: z.number().min(0),
         percentage: z.number().optional(),
         dueDate: z.coerce.date(),
-      })
+      }),
     )
     .optional(),
 
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
         message: "Invoice created successfully",
         invoice,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Create invoice error:", error);
@@ -152,13 +152,13 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to create invoice" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -189,7 +189,7 @@ export async function GET() {
     console.error("Get invoices error:", error);
     return NextResponse.json(
       { error: "Failed to fetch invoices" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
