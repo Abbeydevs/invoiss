@@ -7,6 +7,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = verifyAccountSchema.parse(body);
 
+    if (
+      process.env.NODE_ENV === "development" &&
+      validatedData.accountNumber === "1234567890"
+    ) {
+      return NextResponse.json({
+        accountName: "Nomba Test Account (Mock)",
+      });
+    }
+
     const accessToken = await getNombaAccessToken();
 
     const accountId = process.env.NOMBA_ACCOUNT_ID;
@@ -41,7 +50,9 @@ export async function POST(request: Request) {
         throw new Error(errorData.description || "Invalid account details");
       } catch (parseError) {
         console.error("Error parsing Nomba error response:", parseError);
-        throw new Error(errorText || "Invalid account details");
+        throw new Error(
+          "Banking service temporarily unavailable (Bad Gateway)",
+        );
       }
     }
 
@@ -60,7 +71,7 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

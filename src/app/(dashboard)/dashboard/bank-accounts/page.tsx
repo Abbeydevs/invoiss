@@ -51,7 +51,7 @@ export default function BankAccountsPage() {
       title="Bank Accounts"
       subtitle="Manage your bank accounts for receiving payments"
       action={
-        !isLoading && data && data.bankAccounts.length > 0 ? (
+        !isLoading && data && data?.bankAccounts?.length > 0 ? (
           <AddBankAccount />
         ) : null
       }

@@ -29,7 +29,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
 
       <div className="flex justify-between items-start mb-10">
         <div className="space-y-3">
-          {profile?.logoUrl ? (
+          {profile?.logoUrl && (
             <div className="relative w-[140px] h-[70px]">
               <Image
                 src={profile.logoUrl}
@@ -39,11 +39,14 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
                 unoptimized
               />
             </div>
-          ) : (
+          )}
+
+          {(profile?.businessName || !profile?.logoUrl) && (
             <h2 className="text-2xl font-bold text-slate-800">
               {profile?.businessName || "Your Company"}
             </h2>
           )}
+
           <div className="text-sm text-slate-600 space-y-0.5">
             <p className="font-medium">{profile?.address || ""}</p>
             <p>{profile?.phone || ""}</p>
