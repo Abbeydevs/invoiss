@@ -4,6 +4,8 @@ import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { MobileRestriction } from "../common/MobileRestriction";
 import { GlobalAlert } from "./GlobalAlert";
+import { SidebarProvider, useSidebar } from "./SidebarContext";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,19 +14,26 @@ interface DashboardLayoutProps {
   action?: React.ReactNode;
 }
 
-export function DashboardLayout({
+function DashboardLayoutContent({
   children,
   title,
   subtitle,
   action,
 }: DashboardLayoutProps) {
+  const { isCollapsed } = useSidebar();
+
   return (
     <div className="min-h-screen gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       <MobileRestriction />
 
       <Sidebar />
 
-      <div className="lg:pl-72 transition-all duration-300">
+      <div
+        className={cn(
+          "transition-all duration-300",
+          isCollapsed ? "lg:pl-20" : "lg:pl-72",
+        )}
+      >
         <DashboardHeader />
 
         <main className="p-6">
@@ -49,5 +58,13 @@ export function DashboardLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export function DashboardLayout(props: DashboardLayoutProps) {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent {...props} />
+    </SidebarProvider>
   );
 }

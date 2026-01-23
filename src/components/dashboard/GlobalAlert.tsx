@@ -6,7 +6,6 @@ import { AlertTriangle, Info, AlertOctagon, X } from "lucide-react";
 import { getActiveBroadcast } from "@/lib/api/broadcast-actions";
 import { Button } from "@/components/ui/button";
 
-// Define the shape of the broadcast data
 type Broadcast = {
   id: string;
   message: string;
@@ -31,7 +30,6 @@ export function GlobalAlert() {
 
   if (!broadcast || !isVisible) return null;
 
-  // Determine styles based on type
   let styles = "border-blue-200 bg-blue-50 text-blue-800";
   let Icon = Info;
 

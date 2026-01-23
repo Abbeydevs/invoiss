@@ -15,12 +15,13 @@ import {
   Menu,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { BillingModal } from "../billing/BillingModal";
 import Image from "next/image";
+import { useSidebar } from "./SidebarContext";
+import { useState } from "react";
 
 const navigation = [
   {
@@ -57,8 +58,8 @@ export function Sidebar() {
   const { data: session } = useSession();
   const isPro = session?.user?.planType === "PRO";
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } =
+    useSidebar();
   const [showBillingModal, setShowBillingModal] = useState(false);
 
   return (
