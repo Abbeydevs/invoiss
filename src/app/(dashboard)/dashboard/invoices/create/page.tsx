@@ -21,7 +21,7 @@ import {
 import { InvoiceEditorForm } from "@/components/invoice/InvoiceEditorForm";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { InvoiceDetail } from "@/lib/types";
 import { MobileRestriction } from "@/components/common/MobileRestriction";
@@ -94,7 +94,7 @@ function CreateInvoicePageContent() {
         notes: existingInvoice.notes ?? undefined,
       });
     }
-  }, [isEditMode, existingInvoice, form.reset, form]);
+  }, [isEditMode, existingInvoice, form]);
 
   const watchedData = form.watch();
 
@@ -251,31 +251,69 @@ function CreateInvoicePageContent() {
   } as InvoiceDetail;
 
   return (
-    <div className="flex h-screen -m-6">
-      <div className="w-1/3 h-full overflow-y-auto bg-white border-r border-gray-200">
-        <InvoiceEditorForm form={form} isSubmitting={isSubmitting} />
-      </div>
-
-      <div className="w-2/3 h-full overflow-y-auto bg-gray-100 p-8">
-        <div className="flex justify-between items-center mb-6 max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-gray-800">Live Preview</h2>
+    <div className="fixed inset-0 flex flex-col bg-gray-50">
+      {/* Header Bar */}
+      <div className="flex-none bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between max-w-[1800px] mx-auto">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/dashboard/invoices")}
+              className="hover:bg-gray-100"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {isEditMode ? "Edit Invoice" : "Create Invoice"}
+              </h1>
+              <p className="text-sm text-gray-500">
+                Fill in the details to {isEditMode ? "update" : "create"} your
+                invoice
+              </p>
+            </div>
+          </div>
           <Button
             onClick={form.handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="bg-[#1451cb] hover:bg-[#1451cb]/90"
+            className="bg-linear-to-r from-[#1451cb] to-[#0ea5e9] hover:from-[#1451cb]/90 hover:to-[#0ea5e9]/90 text-white shadow-lg"
           >
             {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
             ) : isEditMode ? (
-              "Save Changes & Preview"
+              "Save Changes"
             ) : (
               "Save & Preview"
             )}
           </Button>
         </div>
+      </div>
 
-        <div className="transform scale-[.8] origin-top">
-          <InvoicePreview invoice={previewData} />
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-[420px] flex-none bg-white border-r border-gray-200 overflow-y-auto">
+          <InvoiceEditorForm form={form} isSubmitting={isSubmitting} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-gray-100">
+          <div className="p-8 min-h-full">
+            <div className="max-w-5xl mx-auto">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Live Preview
+                </h2>
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                  Draft
+                </div>
+              </div>
+              <div className="transform scale-90 origin-top">
+                <InvoicePreview invoice={previewData} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

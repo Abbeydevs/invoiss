@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,17 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  Loader2,
-  Sparkles,
-  Crown,
-  CheckCircle2,
-  Building2,
-  Image as ImageIcon,
-  AlertTriangle,
-  AlertCircle,
-  Clock,
-} from "lucide-react";
+import { Loader2, Crown, CheckCircle2, Building2, X } from "lucide-react";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import {
@@ -34,6 +25,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -130,318 +122,183 @@ export default function SettingsPage() {
       : null;
 
   const isGracePeriod = isPro && subscriptionEnd && subscriptionEnd < today;
+  const isTrial = !isGracePeriod && trialEnd && trialEnd > today;
 
-  const isTrial = isPro && !isGracePeriod && trialEnd && trialEnd > today;
-
-  const daysDifference = subscriptionEnd
-    ? Math.abs(differenceInDays(subscriptionEnd, today))
+  const daysRemaining = subscriptionEnd
+    ? differenceInDays(subscriptionEnd, today)
     : 0;
 
   return (
-    <DashboardLayout
-      title="Settings"
-      subtitle="Manage your profile and subscription"
-    >
-      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* --- SUBSCRIPTION CARD --- */}
-        <Card
-          className={`border-0 shadow-xl overflow-hidden transition-all duration-300 ${
-            isGracePeriod
-              ? "bg-linear-to-br from-red-50 via-white to-orange-50 border-red-200 ring-2 ring-red-100"
-              : isTrial
-                ? "bg-linear-to-br from-indigo-50 via-white to-blue-50 border-indigo-100"
-                : isPro
-                  ? "bg-linear-to-br from-blue-50 via-white to-purple-50"
-                  : "bg-linear-to-br from-gray-50 to-white"
-          }`}
-        >
-          <CardHeader className="pb-4 relative overflow-hidden">
-            {isPro && !isGracePeriod && (
-              <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-yellow-400/20 to-purple-400/20 rounded-full blur-3xl" />
-            )}
-
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative">
-              <div className="flex items-start gap-3">
-                {/* ICON BOX */}
+    <DashboardLayout title="Settings" subtitle="Manage your account settings">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Subscription Card */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4">
                 <div
-                  className={`p-3 rounded-xl ${
-                    isGracePeriod
-                      ? "bg-red-100 text-red-600"
-                      : isTrial
-                        ? "bg-indigo-100 text-indigo-600"
-                        : isPro
-                          ? "bg-linear-to-br from-[#1451cb] to-purple-600 shadow-lg text-white"
-                          : "bg-gray-100 text-gray-400"
+                  className={`p-3 rounded-lg ${
+                    isPro
+                      ? "bg-linear-to-br from-blue-500 to-purple-600"
+                      : "bg-gray-100"
                   }`}
                 >
-                  {isGracePeriod ? (
-                    <AlertTriangle className="h-6 w-6" />
-                  ) : isTrial ? (
-                    <Clock className="h-6 w-6" />
-                  ) : isPro ? (
-                    <Crown className="h-6 w-6" />
-                  ) : (
-                    <Sparkles className="h-6 w-6" />
-                  )}
+                  <Crown
+                    className={`h-6 w-6 ${isPro ? "text-white" : "text-gray-400"}`}
+                  />
                 </div>
-
-                {/* TITLE & DESC */}
                 <div>
-                  <CardTitle
-                    className={`text-2xl font-bold mb-1 ${
-                      isGracePeriod
-                        ? "text-red-700"
-                        : isTrial
-                          ? "text-indigo-700"
-                          : ""
-                    }`}
-                  >
-                    {isGracePeriod
-                      ? "Subscription Expired"
-                      : isTrial
-                        ? "Free Trial Active"
-                        : isPro
-                          ? "Pro Plan"
-                          : "Basic Plan"}
+                  <CardTitle className="text-xl mb-1">
+                    {isPro ? "Pro Plan" : "Basic Plan"}
                   </CardTitle>
-                  <CardDescription className="text-base">
-                    {isGracePeriod
-                      ? "Your plan has expired. Please renew to avoid downgrade."
-                      : isTrial
-                        ? "You have full access to Pro features during your trial."
-                        : isPro
-                          ? "Unlimited access to all premium features"
-                          : "Limited access with basic features"}
+                  <CardDescription>
+                    {isPro
+                      ? "Access to all premium features"
+                      : "Upgrade to unlock premium features"}
                   </CardDescription>
                 </div>
               </div>
-
-              {/* BADGES */}
-              <div className="flex items-center gap-3">
-                <Badge
-                  className={`${
-                    isGracePeriod
-                      ? "bg-red-600 hover:bg-red-700 shadow-md animate-pulse"
-                      : isTrial
-                        ? "bg-indigo-600 hover:bg-indigo-700 shadow-md"
-                        : isPro
-                          ? "bg-linear-to-r from-[#1451cb] to-purple-600 shadow-md"
-                          : "bg-gray-500 hover:bg-gray-600"
-                  } text-white px-4 py-1.5 text-sm font-semibold`}
-                >
-                  {isGracePeriod
-                    ? "ACTION REQUIRED"
-                    : isTrial
-                      ? "FREE TRIAL"
-                      : isPro
-                        ? "PRO"
-                        : "BASIC"}
-                </Badge>
-
-                {/* Show Billing Cycle Badge ONLY for Paid Pros */}
-                {isPro &&
-                  !isGracePeriod &&
-                  !isTrial &&
-                  profileData?.billingCycle && (
-                    <Badge
-                      variant="outline"
-                      className="border-blue-200 text-blue-700 bg-blue-50"
-                    >
-                      {profileData?.billingCycle}
-                    </Badge>
-                  )}
-              </div>
+              <Badge
+                className={`${
+                  isPro
+                    ? "bg-linear-to-r from-blue-500 to-purple-600"
+                    : "bg-gray-500"
+                } text-white`}
+              >
+                {isPro ? "PRO" : "BASIC"}
+              </Badge>
             </div>
           </CardHeader>
-
-          <CardContent className="pt-4 pb-6">
-            <div className="grid sm:grid-cols-2 gap-6">
-              {/* FEATURE LIST */}
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100">
+          <CardContent>
+            <div className="space-y-4">
+              {/* Features */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
                   <CheckCircle2
-                    className={`h-5 w-5 mt-0.5 shrink-0 ${
-                      isPro ? "text-green-500" : "text-gray-400"
-                    }`}
+                    className={`h-5 w-5 mt-0.5 ${isPro ? "text-green-500" : "text-gray-400"}`}
                   />
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {isPro ? "Unlimited Bank Accounts" : "1 Bank Account"}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {isPro ? "Unlimited" : "1"} Bank Account
+                      {isPro ? "s" : ""}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {isPro
-                        ? "Connect as many as you need"
-                        : "Limited to single account"}
+                        ? "Connect multiple accounts"
+                        : "Limited to one account"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100">
+                <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
                   <CheckCircle2
-                    className={`h-5 w-5 mt-0.5 shrink-0 ${
-                      isPro ? "text-green-500" : "text-gray-400"
-                    }`}
+                    className={`h-5 w-5 mt-0.5 ${isPro ? "text-green-500" : "text-gray-400"}`}
                   />
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {isPro ? "Premium Templates" : "Basic Templates"}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {isPro ? "Premium" : "Basic"} Templates
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {isPro
-                        ? "Access to all invoice designs"
-                        : "Limited template selection"}
+                        ? "Access all invoice designs"
+                        : "Limited templates only"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* ACTION AREA */}
-              <div className="flex flex-col justify-center items-center sm:items-end gap-4">
-                {/* 1. BUTTON LOGIC */}
-                {/* Show 'Pay/Upgrade' button if: Basic OR Grace Period OR Trial */}
-                {(!isPro || isGracePeriod || isTrial) && (
-                  <div className="text-center sm:text-right w-full sm:w-auto">
-                    {!isPro && !isTrial && (
-                      <p className="text-sm text-gray-500 mb-2">
-                        Unlock all features
+              {/* Action Area */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                {isPro && subscriptionEnd ? (
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        {isGracePeriod
+                          ? "Subscription expired"
+                          : isTrial
+                            ? "Trial ends"
+                            : "Renews on"}
                       </p>
-                    )}
-                    <Button
-                      onClick={() => setShowBillingModal(true)}
-                      size="lg"
-                      className={`${
-                        isGracePeriod
-                          ? "bg-red-600 hover:bg-red-700 text-white w-full"
-                          : isTrial
-                            ? "bg-indigo-600 hover:bg-indigo-700 text-white w-full" // Indigo for Trial
-                            : "bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 text-white w-full px-8"
-                      } shadow-lg transition-all duration-300`}
-                    >
-                      {isGracePeriod ? (
-                        <>
-                          <AlertCircle className="h-4 w-4 mr-2" />
-                          Pay Now & Restore
-                        </>
-                      ) : isTrial ? (
-                        <>
-                          <Crown className="h-4 w-4 mr-2" />
-                          Subscribe Now
-                        </>
-                      ) : (
-                        <>
-                          <Crown className="h-4 w-4 mr-2" />
-                          Upgrade to Pro
-                        </>
+                      <p className="text-base font-semibold text-gray-900">
+                        {format(subscriptionEnd, "MMM d, yyyy")}
+                      </p>
+                      {!isGracePeriod && (
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {Math.abs(daysRemaining)} day
+                          {Math.abs(daysRemaining) !== 1 ? "s" : ""} remaining
+                        </p>
                       )}
-                    </Button>
+                    </div>
+                    {profileData?.billingCycle && !isTrial && (
+                      <Badge variant="outline" className="capitalize">
+                        {profileData.billingCycle.toLowerCase()}
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Get unlimited access to all features
+                    </p>
                   </div>
                 )}
 
-                {/* 2. DATE INFO BOX */}
-                {isPro && subscriptionEnd && (
-                  <div
-                    className={`text-center sm:text-right p-4 rounded-xl border shadow-sm w-full sm:w-auto ${
-                      isGracePeriod
-                        ? "bg-red-50 border-red-200"
-                        : isTrial
-                          ? "bg-indigo-50 border-indigo-200"
-                          : "bg-white/60 border-blue-100/50"
-                    }`}
+                {(!isPro || isGracePeriod || isTrial) && (
+                  <Button
+                    onClick={() => setShowBillingModal(true)}
+                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
-                    <p
-                      className={`text-sm mb-1 ${
-                        isGracePeriod
-                          ? "text-red-600 font-bold"
-                          : isTrial
-                            ? "text-indigo-600 font-bold"
-                            : "text-gray-500"
-                      }`}
-                    >
-                      {isGracePeriod
-                        ? "Expired on"
-                        : isTrial
-                          ? "Free Trial Ends"
-                          : profileData?.billingCycle === "YEARLY"
-                            ? "Renews Yearly on"
-                            : "Renews Monthly on"}
-                    </p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {format(subscriptionEnd, "MMMM d, yyyy")}
-                    </p>
-                    <p
-                      className={`text-xs font-medium mt-1 ${
-                        isGracePeriod
-                          ? "text-red-600"
-                          : isTrial
-                            ? "text-indigo-600"
-                            : "text-blue-600"
-                      }`}
-                    >
-                      {isGracePeriod
-                        ? `${daysDifference} day(s) ago`
-                        : `${daysDifference} days remaining`}
-                    </p>
-                  </div>
-                )}
-
-                {/* 3. MANAGE BUTTON */}
-                {/* Only show for PAID Pro users (Not Trial, Not Grace) */}
-                {isPro && !isGracePeriod && !isTrial && (
-                  <div className="text-center sm:text-right">
-                    <p className="text-sm text-green-600 font-medium mb-2 flex items-center gap-2 justify-center sm:justify-end">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Active Subscription
-                    </p>
-                    <Button
-                      variant="outline"
-                      disabled
-                      className="border-gray-300"
-                    >
-                      Manage Subscription
-                    </Button>
-                  </div>
+                    <Crown className="h-4 w-4 mr-2" />
+                    {isGracePeriod
+                      ? "Renew Now"
+                      : isTrial
+                        ? "Subscribe"
+                        : "Upgrade to Pro"}
+                  </Button>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* --- BRANDING CARD (Unchanged) --- */}
-        <Card className="border-0 shadow-xl overflow-hidden bg-white">
-          <CardHeader className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white">
+        {/* Branding Card */}
+        <Card className="border border-gray-200">
+          <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 rounded-lg">
-                <Building2 className="h-5 w-5 text-[#1451cb]" />
+              <div className="p-2.5 bg-blue-50 rounded-lg">
+                <Building2 className="h-5 w-5 text-blue-600" />
               </div>
               <div>
                 <CardTitle className="text-xl">Business Branding</CardTitle>
-                <CardDescription className="mt-1">
+                <CardDescription>
                   Customize how your brand appears on invoices
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             {isLoadingProfile ? (
               <FormSkeleton />
             ) : (
               <Form {...form}>
-                <div className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <FormField
                     control={form.control}
                     name="brandName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          Business Name
-                        </FormLabel>
+                        <FormLabel>Business Name</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter your company name"
                             {...field}
-                            className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-colors"
                           />
                         </FormControl>
+                        <FormDescription>
+                          This will appear on all your invoices
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -452,45 +309,64 @@ export default function SettingsPage() {
                     name="logoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                          <ImageIcon className="h-4 w-4" />
-                          Business Logo
-                        </FormLabel>
+                        <FormLabel>Business Logo</FormLabel>
                         <FormControl>
-                          <div className="p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#1451cb] transition-colors bg-gray-50/50">
-                            <ImageUpload
-                              value={field.value || null}
-                              onChange={field.onChange}
-                            />
+                          <div className="space-y-4">
+                            {field.value ? (
+                              <div className="relative inline-block">
+                                <img
+                                  src={field.value}
+                                  alt="Logo preview"
+                                  className="h-24 w-auto rounded-lg border border-gray-200 object-contain bg-white p-2"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                  onClick={() => field.onChange(null)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                                <ImageUpload
+                                  value={field.value || null}
+                                  onChange={field.onChange}
+                                />
+                              </div>
+                            )}
                           </div>
                         </FormControl>
+                        <FormDescription>
+                          Upload your company logo (PNG, JPG or SVG)
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="pt-4 border-t border-gray-100">
+                  <div className="pt-4">
                     <Button
-                      onClick={form.handleSubmit(onSubmit)}
-                      type="button"
-                      size="lg"
-                      className="w-full bg-linear-to-r from-[#1451cb] to-blue-600 hover:from-[#1451cb]/90 hover:to-blue-600/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 h-12 font-semibold"
+                      type="submit"
+                      className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                       disabled={mutation.isPending}
                     >
                       {mutation.isPending ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          Saving Changes...
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Saving...
                         </>
                       ) : (
                         <>
-                          <CheckCircle2 className="h-5 w-5 mr-2" />
-                          Save Branding
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Save Changes
                         </>
                       )}
                     </Button>
                   </div>
-                </div>
+                </form>
               </Form>
             )}
           </CardContent>
