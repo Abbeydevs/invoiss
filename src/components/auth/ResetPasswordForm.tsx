@@ -14,10 +14,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 const resetSchema = z
   .object({
@@ -38,6 +39,7 @@ export function ResetPasswordForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(resetSchema),
@@ -46,6 +48,34 @@ export function ResetPasswordForm() {
       confirmPassword: "",
     },
   });
+
+  const password = form.watch("password");
+
+  // Password strength checker
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { strength: 0, label: "", color: "" };
+
+    let strength = 0;
+    if (pwd.length >= 8) strength++;
+    if (pwd.length >= 12) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/\d/.test(pwd)) strength++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
+
+    if (strength <= 2)
+      return { strength, label: "Weak", color: "text-red-600 bg-red-100" };
+    if (strength <= 3)
+      return {
+        strength,
+        label: "Fair",
+        color: "text-yellow-600 bg-yellow-100",
+      };
+    if (strength <= 4)
+      return { strength, label: "Good", color: "text-blue-600 bg-blue-100" };
+    return { strength, label: "Strong", color: "text-green-600 bg-green-100" };
+  };
+
+  const passwordStrength = getPasswordStrength(password);
 
   const onSubmit = async (values: FormValues) => {
     if (!token) {
@@ -71,43 +101,95 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="text-center text-red-500 py-4">
-        Invalid link. Please check your email again.
+      <div className="text-center py-8 space-y-4">
+        <div className="flex justify-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <XCircle className="w-8 h-8 text-red-600" />
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Invalid Reset Link
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            This password reset link is invalid or has expired.
+          </p>
+          <Button
+            onClick={() => router.push("/forgot-password")}
+            className="bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90"
+          >
+            Request New Link
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Password</FormLabel>
+              <FormLabel className="text-gray-700 font-medium">
+                New Password
+              </FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Create a strong password"
                     {...field}
+                    className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all pr-10"
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-5 w-5" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </FormControl>
+              {password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-600">
+                      Password strength:
+                    </span>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${passwordStrength.color}`}
+                    >
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        passwordStrength.strength <= 2
+                          ? "bg-red-500"
+                          : passwordStrength.strength <= 3
+                            ? "bg-yellow-500"
+                            : passwordStrength.strength <= 4
+                              ? "bg-blue-500"
+                              : "bg-green-500"
+                      }`}
+                      style={{
+                        width: `${(passwordStrength.strength / 5) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              <FormDescription className="text-xs text-gray-500">
+                Must be at least 8 characters long
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -118,9 +200,29 @@ export function ResetPasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel className="text-gray-700 font-medium">
+                Confirm Password
+              </FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Re-enter your password"
+                    {...field}
+                    className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -129,11 +231,20 @@ export function ResetPasswordForm() {
 
         <Button
           type="submit"
-          className="w-full bg-[#1451cb] hover:bg-[#1451cb]/90 text-white mt-4"
+          className="w-full h-11 bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
           disabled={isLoading}
         >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Reset Password
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Resetting password...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5" />
+              Reset Password
+            </span>
+          )}
         </Button>
       </form>
     </Form>
