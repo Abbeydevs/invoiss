@@ -6,6 +6,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Start seeding...");
 
+  try {
+    await prisma.template.delete({
+      where: { id: "premium-elegant" },
+    });
+    console.log("Cleaned up old 'premium-elegant' template.");
+  } catch (e) {
+    console.log(
+      "'premium-elegant' template does not exist, no cleanup needed.",
+      e,
+    );
+  }
+
   await prisma.template.upsert({
     where: { id: "custom" },
     update: {},
@@ -57,12 +69,17 @@ async function main() {
 
   await prisma.template.upsert({
     where: { id: "elegant" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265042/inv-1_cleek4.png",
+    },
     create: {
       id: "elegant",
       name: "Elegant",
       isDefault: false,
       isPremium: true,
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265042/inv-1_cleek4.png",
       design: { layout: "elegant-v1" },
       userId: null,
     },
@@ -70,12 +87,17 @@ async function main() {
 
   await prisma.template.upsert({
     where: { id: "executive" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265042/inv-2_lssxy7.png",
+    },
     create: {
       id: "executive",
       name: "Executive",
       isDefault: false,
       isPremium: true,
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265042/inv-2_lssxy7.png",
       design: { layout: "executive-v1" },
       userId: null,
     },
@@ -83,12 +105,17 @@ async function main() {
 
   await prisma.template.upsert({
     where: { id: "prestige" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265058/inv-3_tphtvk.png",
+    },
     create: {
       id: "prestige",
       name: "Prestige",
       isDefault: false,
       isPremium: true,
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265058/inv-3_tphtvk.png",
       design: { layout: "prestige-v1" },
       userId: null,
     },
@@ -96,12 +123,17 @@ async function main() {
 
   await prisma.template.upsert({
     where: { id: "summit" },
-    update: {},
+    update: {
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265058/inv-4_yrpevz.png",
+    },
     create: {
       id: "summit",
       name: "Summit",
       isDefault: false,
       isPremium: true,
+      thumbnail:
+        "https://res.cloudinary.com/dvhbcih9v/image/upload/v1769265058/inv-4_yrpevz.png",
       design: { layout: "summit-v1" },
       userId: null,
     },

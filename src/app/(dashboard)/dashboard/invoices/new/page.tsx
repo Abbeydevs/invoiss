@@ -32,6 +32,14 @@ export default function NewInvoiceTemplatePage() {
       return <p className="text-center text-red-500">Error: {error.message}</p>;
     }
 
+    // Filter out "custom" because we have a dedicated StartFromScratchCard for it
+    const defaultTemplates = templateData?.defaultTemplates.filter(
+      (t) => t.id !== "custom",
+    );
+    const customTemplates = templateData?.customTemplates.filter(
+      (t) => t.id !== "custom",
+    );
+
     return (
       <div className="space-y-8">
         {/* Free Templates Section */}
@@ -45,7 +53,7 @@ export default function NewInvoiceTemplatePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StartFromScratchCard />
 
-            {templateData?.defaultTemplates.map((template) => (
+            {defaultTemplates?.map((template) => (
               <TemplateCard
                 key={template.id}
                 template={template}
@@ -55,37 +63,37 @@ export default function NewInvoiceTemplatePage() {
           </div>
         </div>
 
-        {templateData?.customTemplates &&
-          templateData.customTemplates.length > 0 && (
-            <div>
-              <div className="mb-4 flex items-center gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Premium Templates
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {isPro
-                      ? "Unlock the full collection"
-                      : "Upgrade to Pro to access"}
-                  </p>
-                </div>
-                {!isPro && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-600 to-purple-600 text-white">
-                    PRO ONLY
-                  </span>
-                )}
+        {/* Premium Templates Section */}
+        {customTemplates && customTemplates.length > 0 && (
+          <div>
+            <div className="mb-4 flex items-center gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Premium Templates
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {isPro
+                    ? "Unlock the full collection"
+                    : "Upgrade to Pro to access"}
+                </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {templateData.customTemplates.map((template) => (
-                  <TemplateCard
-                    key={template.id}
-                    template={template}
-                    href={`/dashboard/invoices/create?template=${template.id}`}
-                  />
-                ))}
-              </div>
+              {!isPro && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-600 to-purple-600 text-white">
+                  PRO ONLY
+                </span>
+              )}
             </div>
-          )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {customTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  href={`/dashboard/invoices/create?template=${template.id}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
