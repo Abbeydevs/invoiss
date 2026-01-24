@@ -8,8 +8,12 @@ import {
 } from "@/components/invoice/TemplateCard";
 import { getTemplates } from "@/lib/api/action";
 import { ListSkeleton } from "@/components/common/SkeletonLoader";
+import { useSession } from "next-auth/react";
 
 export default function NewInvoiceTemplatePage() {
+  const { data: session } = useSession();
+  const isPro = session?.user?.planType === "PRO";
+
   const {
     data: templateData,
     isLoading,
@@ -29,24 +33,59 @@ export default function NewInvoiceTemplatePage() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StartFromScratchCard />
+      <div className="space-y-8">
+        {/* Free Templates Section */}
+        <div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Free Templates
+            </h2>
+            <p className="text-sm text-gray-500">Available for all users</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StartFromScratchCard />
 
-        {templateData?.defaultTemplates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            href={`/dashboard/invoices/create?template=${template.id}`}
-          />
-        ))}
+            {templateData?.defaultTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                href={`/dashboard/invoices/create?template=${template.id}`}
+              />
+            ))}
+          </div>
+        </div>
 
-        {templateData?.customTemplates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            href={`/dashboard/invoices/create?template=${template.id}`}
-          />
-        ))}
+        {templateData?.customTemplates &&
+          templateData.customTemplates.length > 0 && (
+            <div>
+              <div className="mb-4 flex items-center gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Premium Templates
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {isPro
+                      ? "Unlock the full collection"
+                      : "Upgrade to Pro to access"}
+                  </p>
+                </div>
+                {!isPro && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-600 to-purple-600 text-white">
+                    PRO ONLY
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templateData.customTemplates.map((template) => (
+                  <TemplateCard
+                    key={template.id}
+                    template={template}
+                    href={`/dashboard/invoices/create?template=${template.id}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
       </div>
     );
   };

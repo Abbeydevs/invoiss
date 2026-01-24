@@ -5,6 +5,10 @@ import { Card } from "@/components/ui/card";
 import { ClassicPreview } from "./previews/ClassicPreview";
 import { ModernPreview } from "./previews/ModernPreview";
 import { BlankPreview } from "./previews/BlankPreview";
+import { ElegantPreview } from "./previews/ElegantPreview";
+import { ExecutivePreview } from "./previews/ExecutivePreview";
+import { PrestigePreview } from "./previews/PrestigePreview";
+import { SummitPreview } from "./previews/SummitPreview";
 import { useSession } from "next-auth/react";
 
 const Watermark = ({ isProUser }: { isProUser: boolean }) => {
@@ -33,6 +37,18 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
       break;
     case "modern":
       TemplateComponent = <ModernPreview invoice={invoice} />;
+      break;
+    case "elegant":
+      TemplateComponent = <ElegantPreview invoice={invoice} />;
+      break;
+    case "executive":
+      TemplateComponent = <ExecutivePreview invoice={invoice} />;
+      break;
+    case "prestige":
+      TemplateComponent = <PrestigePreview invoice={invoice} />;
+      break;
+    case "summit":
+      TemplateComponent = <SummitPreview invoice={invoice} />;
       break;
     case "classic":
     default:

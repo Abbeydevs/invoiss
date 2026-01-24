@@ -56,14 +56,53 @@ async function main() {
   });
 
   await prisma.template.upsert({
-    where: { id: "premium-elegant" },
+    where: { id: "elegant" },
     update: {},
     create: {
-      id: "premium-elegant",
-      name: "Elegant (Pro)",
+      id: "elegant",
+      name: "Elegant",
       isDefault: false,
       isPremium: true,
       design: { layout: "elegant-v1" },
+      userId: null,
+    },
+  });
+
+  await prisma.template.upsert({
+    where: { id: "executive" },
+    update: {},
+    create: {
+      id: "executive",
+      name: "Executive",
+      isDefault: false,
+      isPremium: true,
+      design: { layout: "executive-v1" },
+      userId: null,
+    },
+  });
+
+  await prisma.template.upsert({
+    where: { id: "prestige" },
+    update: {},
+    create: {
+      id: "prestige",
+      name: "Prestige",
+      isDefault: false,
+      isPremium: true,
+      design: { layout: "prestige-v1" },
+      userId: null,
+    },
+  });
+
+  await prisma.template.upsert({
+    where: { id: "summit" },
+    update: {},
+    create: {
+      id: "summit",
+      name: "Summit",
+      isDefault: false,
+      isPremium: true,
+      design: { layout: "summit-v1" },
       userId: null,
     },
   });

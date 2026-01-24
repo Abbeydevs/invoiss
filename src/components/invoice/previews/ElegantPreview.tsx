@@ -21,37 +21,47 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
   };
 
   return (
-    <div className="min-h-[1000px] font-sans text-[#2d3748] bg-white">
-      <div className="bg-linear-to-r from-emerald-600 to-teal-600 p-10 pb-16">
-        <div className="flex justify-between items-start">
+    <div
+      className="font-sans text-slate-900 bg-white"
+      style={{ minHeight: "297mm" }}
+    >
+      {/* Sophisticated Emerald Header */}
+      <div className="relative bg-linear-to-br from-emerald-700 via-teal-600 to-emerald-800 px-14 py-12">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-32 -translate-x-32"></div>
+
+        <div className="relative flex justify-between items-start">
           <div>
             {profile?.logoUrl ? (
-              <div className="relative w-[140px] h-[70px] mb-4 bg-white p-3 rounded-lg">
+              <div className="relative w-[150px] h-[75px] mb-6 bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/20">
                 <Image
                   src={profile.logoUrl}
                   alt={profile.businessName || "Logo"}
                   fill
                   className="object-contain"
+                  unoptimized
                 />
               </div>
             ) : (
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-3xl font-bold text-white mb-6 tracking-tight">
                 {profile?.businessName || "Your Company"}
               </h2>
             )}
-            <div className="text-sm text-emerald-50 space-y-0.5">
-              <p>{profile?.address}</p>
-              <p>{profile?.phone}</p>
+            <div className="text-sm text-emerald-50/90 space-y-1 leading-relaxed">
+              <p className="font-medium">{profile?.address || ""}</p>
+              <p>{profile?.phone || ""}</p>
             </div>
           </div>
 
-          <div className="text-right text-white">
-            <h1 className="text-5xl font-bold tracking-tight mb-2">INVOICE</h1>
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg inline-block">
-              <p className="text-xs text-emerald-100 font-medium">
-                Invoice Number
+          <div className="text-right">
+            <h1 className="text-6xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">
+              INVOICE
+            </h1>
+            <div className="inline-block bg-white/15 backdrop-blur-xl border border-white/30 px-6 py-4 rounded-2xl shadow-xl">
+              <p className="text-xs text-emerald-100 font-bold tracking-widest mb-1">
+                NUMBER
               </p>
-              <p className="text-white font-bold text-lg">
+              <p className="text-white font-bold text-xl tracking-wide">
                 {invoice.invoiceNumber}
               </p>
             </div>
@@ -60,226 +70,268 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
       </div>
 
       {/* Main Content */}
-      <div className="px-10 -mt-8">
-        {/* Bill To and Dates Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border border-gray-100">
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3">
-                Bill To
-              </p>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+      <div className="px-14 py-10">
+        {/* Bill To Card with Shadow */}
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-10 mb-10 -mt-8 relative z-10">
+          <div className="grid grid-cols-3 gap-10">
+            <div className="col-span-2">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-1 w-16 bg-linear-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                  Invoice To
+                </p>
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">
                 {customer?.name || invoice.billToName}
               </h3>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p>{customer?.email || invoice.billToEmail}</p>
-                <p>{customer?.phone || invoice.billToPhone}</p>
+              <div className="space-y-2 text-sm text-slate-600 leading-relaxed">
+                <p className="font-semibold text-slate-800">
+                  {customer?.email || invoice.billToEmail}
+                </p>
+                <p>{customer?.phone || invoice.billToPhone || ""}</p>
                 <p className="leading-relaxed">
-                  {customer?.address || invoice.billToAddress}
+                  {customer?.address || invoice.billToAddress || ""}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <div className="space-y-5">
+              <div className="bg-slate-50 border-l-4 border-emerald-500 p-5 rounded-lg">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Invoice Date
                 </p>
-                <p className="text-gray-900 font-semibold text-base mt-1">
-                  {format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}
+                <p className="text-slate-900 font-bold text-lg">
+                  {format(new Date(invoice.invoiceDate), "MMM d, yyyy")}
                 </p>
               </div>
-              <div className="bg-amber-50 p-4 rounded-lg border border-amber-300">
-                <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
-                  Due Date
+              <div className="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-lg">
+                <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">
+                  Payment Due
                 </p>
-                <p className="text-amber-900 font-semibold text-base mt-1">
-                  {format(new Date(invoice.dueDate), "MMMM d, yyyy")}
+                <p className="text-amber-900 font-bold text-lg">
+                  {format(new Date(invoice.dueDate), "MMM d, yyyy")}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Items Table */}
-        <div className="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div className="flex bg-linear-to-r from-emerald-600 to-teal-600 text-white py-4 px-6">
-            <div className="w-[50%] font-bold text-sm uppercase tracking-wider">
-              Description
-            </div>
-            <div className="w-[15%] font-bold text-sm uppercase tracking-wider text-center">
-              Qty
-            </div>
-            <div className="w-[17.5%] font-bold text-sm uppercase tracking-wider text-right">
-              Unit Price
-            </div>
-            <div className="w-[17.5%] font-bold text-sm uppercase tracking-wider text-right">
-              Amount
+        {/* Premium Items Table */}
+        <div className="mb-10 rounded-2xl overflow-hidden shadow-xl border border-slate-200">
+          <div className="bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white">
+            <div className="flex px-10 py-6">
+              <div className="w-[48%] font-bold text-sm uppercase tracking-widest">
+                Description
+              </div>
+              <div className="w-[14%] font-bold text-sm uppercase tracking-widest text-center">
+                Qty
+              </div>
+              <div className="w-[19%] font-bold text-sm uppercase tracking-widest text-right">
+                Unit Price
+              </div>
+              <div className="w-[19%] font-bold text-sm uppercase tracking-widest text-right">
+                Amount
+              </div>
             </div>
           </div>
 
-          {invoice.items.map((item, index) => (
-            <div
-              key={item.id}
-              className={`flex py-4 px-6 ${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-              } ${index !== invoice.items.length - 1 ? "border-b border-gray-100" : ""}`}
-            >
-              <div className="w-[50%] text-gray-800 font-medium">
-                {item.description}
+          <div className="bg-white">
+            {invoice.items.map((item, index) => (
+              <div
+                key={item.id}
+                className={`flex px-10 py-6 ${
+                  index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                } ${index !== invoice.items.length - 1 ? "border-b border-slate-100" : ""}`}
+              >
+                <div className="w-[48%] text-slate-900 font-semibold">
+                  {item.description}
+                </div>
+                <div className="w-[14%] text-slate-700 text-center font-bold">
+                  {item.quantity}
+                </div>
+                <div className="w-[19%] text-slate-600 text-right">
+                  {formatCurrency(item.unitPrice)}
+                </div>
+                <div className="w-[19%] text-emerald-700 font-bold text-right">
+                  {formatCurrency(item.amount)}
+                </div>
               </div>
-              <div className="w-[15%] text-gray-600 text-center font-semibold">
-                {item.quantity}
-              </div>
-              <div className="w-[17.5%] text-gray-600 text-right">
-                {formatCurrency(item.unitPrice)}
-              </div>
-              <div className="w-[17.5%] text-emerald-700 font-bold text-right">
-                {formatCurrency(item.amount)}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Footer Section */}
-        <div className="grid grid-cols-2 gap-8 mb-10">
-          {/* Notes and Payment Details */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-10 mb-12">
+          {/* Notes & Payment */}
+          <div className="space-y-6">
             {bankAccount && (
-              <div className="bg-emerald-50 p-5 rounded-lg border border-emerald-200">
-                <h4 className="font-bold text-emerald-900 mb-2 text-sm uppercase tracking-wider flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
-                  Payment Details
-                </h4>
-                <div className="text-sm text-emerald-800 space-y-1">
-                  <p className="font-semibold">{bankAccount.bankName}</p>
-                  <p>{bankAccount.accountNumber}</p>
-                  <p>{bankAccount.accountName}</p>
+              <div className="bg-linear-to-br from-emerald-600 to-teal-700 text-white p-7 rounded-2xl shadow-xl">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="h-2 w-2 rounded-full bg-white"></div>
+                  <h4 className="font-bold text-sm uppercase tracking-widest">
+                    Payment Details
+                  </h4>
+                </div>
+                <div className="space-y-3 text-sm text-emerald-50">
+                  <div className="flex justify-between items-center">
+                    <span className="text-emerald-100">Bank</span>
+                    <span className="font-bold text-white">
+                      {bankAccount.bankName}
+                    </span>
+                  </div>
+                  <div className="h-px bg-white/20"></div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-emerald-100">Account</span>
+                    <span className="font-mono font-bold text-white">
+                      {bankAccount.accountNumber}
+                    </span>
+                  </div>
+                  <div className="h-px bg-white/20"></div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-emerald-100">Name</span>
+                    <span className="font-semibold text-white">
+                      {bankAccount.accountName}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
             {invoice.notes && (
-              <div className="bg-blue-50 p-5 rounded-lg border border-blue-200">
-                <h4 className="font-bold text-blue-900 mb-2 text-sm uppercase tracking-wider flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                    />
-                  </svg>
-                  Notes
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-xl">
+                <h4 className="font-bold text-blue-900 mb-3 text-sm uppercase tracking-wider">
+                  Additional Notes
                 </h4>
                 <p className="text-sm text-blue-800 leading-relaxed">
                   {invoice.notes}
                 </p>
               </div>
             )}
-            {invoice.paymentTerms && (
-              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                <h4 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wider flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Payment Terms
-                </h4>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {invoice.paymentTerms}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Totals Section */}
+          {/* Totals */}
           <div>
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="space-y-3">
-                <div className="flex justify-between text-gray-700 pb-2">
+            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8">
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between text-slate-700">
                   <span className="font-medium">Subtotal</span>
-                  <span className="font-semibold">
+                  <span className="font-bold">
                     {formatCurrency(invoice.subtotal)}
                   </span>
                 </div>
 
                 {invoice.taxAmount && invoice.taxAmount > 0 && (
-                  <div className="flex justify-between text-gray-700 pb-2">
+                  <div className="flex justify-between text-slate-700">
                     <span className="font-medium">
                       Tax ({invoice.taxRate}%)
                     </span>
-                    <span className="font-semibold">
+                    <span className="font-bold">
                       {formatCurrency(invoice.taxAmount)}
                     </span>
                   </div>
                 )}
 
                 {invoice.discountAmount && invoice.discountAmount > 0 && (
-                  <div className="flex justify-between text-gray-700 pb-2">
+                  <div className="flex justify-between text-slate-700">
                     <span className="font-medium">Discount</span>
-                    <span className="text-red-600 font-semibold">
+                    <span className="text-red-600 font-bold">
                       -{formatCurrency(invoice.discountAmount)}
                     </span>
                   </div>
                 )}
 
-                <div className="w-full h-px bg-gray-300 my-3" />
+                <div className="h-px bg-linear-to-r from-transparent via-slate-300 to-transparent my-5"></div>
 
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-lg font-bold text-gray-900">Total</span>
-                  <span className="text-2xl font-bold text-gray-900">
+                <div className="flex justify-between items-baseline mb-8">
+                  <span className="text-xl font-bold text-slate-900">
+                    Total
+                  </span>
+                  <span className="text-3xl font-bold text-slate-900">
                     {formatCurrency(invoice.totalAmount)}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-linear-to-r from-emerald-600 to-teal-600 text-white p-5 rounded-lg mt-5">
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-bold">Amount Due</span>
-                  <span className="text-2xl font-bold">
-                    {formatCurrency(invoice.balanceDue)}
-                  </span>
-                </div>
+              <div className="bg-linear-to-br from-emerald-600 to-teal-700 text-white p-7 rounded-2xl -mx-8 -mb-8 shadow-xl">
+                <p className="text-xs text-emerald-100 uppercase tracking-widest mb-2">
+                  Balance Due
+                </p>
+                <p className="text-4xl font-bold">
+                  {formatCurrency(invoice.balanceDue)}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center pb-10 pt-6 border-t border-gray-200">
-          <p className="text-gray-500 text-sm font-medium">
-            Thank you for your business!
-          </p>
-          <p className="text-gray-400 text-xs mt-1">
-            This invoice was generated electronically and is valid without
-            signature.
-          </p>
+        {invoice.hasPaymentSchedule &&
+          invoice.paymentMilestones &&
+          invoice.paymentMilestones.length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-1 w-16 bg-linear-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                  Payment Schedule
+                </p>
+              </div>
+              <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200">
+                <table className="w-full text-left bg-white">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="py-4 px-10 font-bold text-xs text-slate-600 uppercase tracking-wider">
+                        Milestone
+                      </th>
+                      <th className="py-4 px-10 font-bold text-xs text-slate-600 uppercase tracking-wider text-right">
+                        Due Date
+                      </th>
+                      <th className="py-4 px-10 font-bold text-xs text-slate-600 uppercase tracking-wider text-right">
+                        Status
+                      </th>
+                      <th className="py-4 px-10 font-bold text-xs text-slate-600 uppercase tracking-wider text-right">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {invoice.paymentMilestones.map((m) => (
+                      <tr key={m.id} className="hover:bg-slate-50/50">
+                        <td className="py-4 px-10 font-semibold text-slate-900 text-sm">
+                          {m.name}
+                        </td>
+                        <td className="py-4 px-10 text-right text-slate-600 text-sm">
+                          {format(new Date(m.dueDate), "MMM d, yyyy")}
+                        </td>
+                        <td className="py-4 px-10 text-right">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                              m.status === "PAID"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {m.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-10 text-right font-bold text-slate-900 text-sm">
+                          {formatCurrency(m.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        <div className="text-center pt-10 pb-8 border-t border-slate-200">
+          <div className="inline-block">
+            <p className="text-slate-700 font-semibold text-lg mb-3">
+              Thank You For Your Business
+            </p>
+            <div className="h-1 w-32 bg-linear-to-r from-emerald-500 to-teal-500 mx-auto mb-3 rounded-full"></div>
+            <p className="text-slate-500 text-sm">
+              Professional Invoice • Electronically Generated
+            </p>
+          </div>
         </div>
       </div>
     </div>
