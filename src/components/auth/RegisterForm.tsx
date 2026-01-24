@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, EyeOff, Loader2, User, Building2 } from "lucide-react";
 
 const individualSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -39,9 +40,10 @@ type CompanyFormValues = z.infer<typeof companySchema>;
 export function RegisterForm() {
   const router = useRouter();
   const [accountType, setAccountType] = useState<"INDIVIDUAL" | "COMPANY">(
-    "INDIVIDUAL"
+    "INDIVIDUAL",
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const individualForm = useForm<IndividualFormValues>({
     resolver: zodResolver(individualSchema),
@@ -87,7 +89,7 @@ export function RegisterForm() {
       router.push("/login?registered=true");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong"
+        error instanceof Error ? error.message : "Something went wrong",
       );
     } finally {
       setIsLoading(false);
@@ -119,7 +121,7 @@ export function RegisterForm() {
       router.push("/login?registered=true");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong"
+        error instanceof Error ? error.message : "Something went wrong",
       );
     } finally {
       setIsLoading(false);
@@ -129,21 +131,24 @@ export function RegisterForm() {
   return (
     <Tabs
       defaultValue="INDIVIDUAL"
-      onValueChange={(value) =>
-        setAccountType(value as "INDIVIDUAL" | "COMPANY")
-      }
+      onValueChange={(value) => {
+        setAccountType(value as "INDIVIDUAL" | "COMPANY");
+        setShowPassword(false); // Reset password visibility when switching tabs
+      }}
     >
-      <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100">
+      <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-gray-100 p-1">
         <TabsTrigger
           value="INDIVIDUAL"
-          className="data-[state=active]:bg-linear-to-r data-[state=active]:from-[#1451cb] data-[state=active]:to-[#1451cb] data-[state=active]:text-white transition-all"
+          className="data-[state=active]:bg-white data-[state=active]:text-[#1451cb] data-[state=active]:shadow-sm transition-all rounded-md font-medium"
         >
+          <User className="h-4 w-4 mr-2" />
           Individual
         </TabsTrigger>
         <TabsTrigger
           value="COMPANY"
-          className="data-[state=active]:bg-linear-to-r data-[state=active]:from-[#1451cb] data-[state=active]:to-[#1451cb] data-[state=active]:text-white transition-all"
+          className="data-[state=active]:bg-white data-[state=active]:text-[#1451cb] data-[state=active]:shadow-sm transition-all rounded-md font-medium"
         >
+          <Building2 className="h-4 w-4 mr-2" />
           Company
         </TabsTrigger>
       </TabsList>
@@ -160,12 +165,14 @@ export function RegisterForm() {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">First Name</FormLabel>
+                    <FormLabel className="text-gray-700 font-medium">
+                      First Name
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="John"
                         {...field}
-                        className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                        className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                       />
                     </FormControl>
                     <FormMessage />
@@ -178,12 +185,14 @@ export function RegisterForm() {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">Last Name</FormLabel>
+                    <FormLabel className="text-gray-700 font-medium">
+                      Last Name
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Doe"
                         {...field}
-                        className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                        className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                       />
                     </FormControl>
                     <FormMessage />
@@ -197,13 +206,15 @@ export function RegisterForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Email</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Email Address
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       placeholder="you@example.com"
                       {...field}
-                      className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                      className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                     />
                   </FormControl>
                   <FormMessage />
@@ -216,14 +227,29 @@ export function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Password</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Password
+                  </FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      {...field}
-                      className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a strong password"
+                        {...field}
+                        className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -232,12 +258,12 @@ export function RegisterForm() {
 
             <Button
               type="submit"
-              className="w-full bg-linear-to-r from-[#1451cb] to-[#1451cb] hover:from-[#1451cb]/90 hover:to-[#1451cb]/90 text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
+              className="w-full h-11 bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
               disabled={isLoading}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Creating account...
                 </span>
               ) : (
@@ -259,12 +285,14 @@ export function RegisterForm() {
               name="businessName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Business Name</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Business Name
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Acme Inc."
                       {...field}
-                      className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                      className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                     />
                   </FormControl>
                   <FormMessage />
@@ -277,13 +305,15 @@ export function RegisterForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Email</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Email Address
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder="you@company.com"
                       {...field}
-                      className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                      className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                     />
                   </FormControl>
                   <FormMessage />
@@ -296,14 +326,29 @@ export function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Password</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Password
+                  </FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      {...field}
-                      className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a strong password"
+                        {...field}
+                        className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -312,12 +357,12 @@ export function RegisterForm() {
 
             <Button
               type="submit"
-              className="w-full bg-linear-to-r from-[#1451cb] to-[#1451cb] hover:from-[#1451cb]/90 hover:to-[#1451cb]/90 text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
+              className="w-full h-11 bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
               disabled={isLoading}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Creating account...
                 </span>
               ) : (
