@@ -32,7 +32,9 @@ export default function BankAccountsPage() {
       return <p className="text-center text-red-500">Error: {error.message}</p>;
     }
 
-    if (!data || data?.bankAccounts?.length === 0) {
+    const bankAccounts = data?.bankAccounts || [];
+
+    if (bankAccounts.length === 0) {
       return (
         <EmptyState
           icon={CreditCard}
@@ -43,18 +45,17 @@ export default function BankAccountsPage() {
       );
     }
 
-    return <BankAccountList accounts={data.bankAccounts} />;
+    return <BankAccountList accounts={bankAccounts} />;
   };
+
+  const bankAccounts = data?.bankAccounts || [];
+  const showAction = !isLoading && bankAccounts.length > 0;
 
   return (
     <DashboardLayout
       title="Bank Accounts"
       subtitle="Manage your bank accounts for receiving payments"
-      action={
-        !isLoading && data && data?.bankAccounts?.length > 0 ? (
-          <AddBankAccount />
-        ) : null
-      }
+      action={showAction ? <AddBankAccount /> : null}
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         {renderContent()}

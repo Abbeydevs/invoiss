@@ -1,4 +1,3 @@
-// src/components/bank-accounts/BankAccountList.tsx
 "use client";
 
 import { useState } from "react";
@@ -30,7 +29,6 @@ interface BankAccountListProps {
   accounts: BankAccount[];
 }
 
-// Helper function to call the DELETE API
 async function deleteBankAccount(id: string) {
   const response = await fetch(`/api/bank-accounts/${id}`, {
     method: "DELETE",
@@ -48,7 +46,6 @@ export function BankAccountList({ accounts }: BankAccountListProps) {
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Mutation for deleting
   const deleteMutation = useMutation({
     mutationFn: deleteBankAccount,
     onSuccess: () => {
@@ -61,6 +58,10 @@ export function BankAccountList({ accounts }: BankAccountListProps) {
       setAccountToDelete(null);
     },
   });
+
+  if (!accounts || !Array.isArray(accounts)) {
+    return null;
+  }
 
   return (
     <>
@@ -82,7 +83,6 @@ export function BankAccountList({ accounts }: BankAccountListProps) {
                     </Badge>
                   )}
 
-                  {/* --- ACTION MENU --- */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -121,7 +121,6 @@ export function BankAccountList({ accounts }: BankAccountListProps) {
         ))}
       </div>
 
-      {/* --- DELETE CONFIRMATION DIALOG --- */}
       <AlertDialog
         open={!!accountToDelete}
         onOpenChange={(open) => !open && setAccountToDelete(null)}
