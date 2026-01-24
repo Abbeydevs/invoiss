@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -31,6 +32,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -90,14 +92,16 @@ export function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-gray-700">Email</FormLabel>
+              <FormLabel className="text-gray-700 font-medium">
+                Email Address
+              </FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
                   {...field}
-                  className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
+                  className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
                 />
               </FormControl>
               <FormMessage />
@@ -110,23 +114,38 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel className="text-gray-700">Password</FormLabel>
+              <div className="flex items-center justify-between mb-2">
+                <FormLabel className="text-gray-700 font-medium">
+                  Password
+                </FormLabel>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-[#1451cb] hover:underline transition-all"
+                  className="text-sm text-[#1451cb] hover:text-[#1451cb]/90 font-medium transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
               <FormControl>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  {...field}
-                  className="border-gray-200 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all"
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    {...field}
+                    className="h-11 border-gray-300 focus:border-[#1451cb] focus:ring-[#1451cb] transition-all pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -145,8 +164,8 @@ export function LoginForm() {
                   className="border-gray-300 data-[state=checked]:bg-[#1451cb] data-[state=checked]:border-[#1451cb]"
                 />
               </FormControl>
-              <FormLabel className="text-sm font-medium text-gray-700 mt-0!">
-                Remember me
+              <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer">
+                Remember me for 30 days
               </FormLabel>
             </FormItem>
           )}
@@ -154,12 +173,12 @@ export function LoginForm() {
 
         <Button
           type="submit"
-          className="w-full bg-linear-to-r from-[#1451cb] to-[#1451cb] hover:from-[#1451cb]/90 hover:to-[#1451cb]/90 text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
+          className="w-full h-11 bg-linear-to-r from-[#1451cb] to-purple-600 hover:from-[#1451cb]/90 hover:to-purple-600/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
           disabled={isLoading}
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               Signing in...
             </span>
           ) : (
