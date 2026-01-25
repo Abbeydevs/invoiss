@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Navbar } from "@/components/landing/Navbar";
-import { Footer } from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,8 +75,6 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <Navbar />
-
       <main className="flex-1">
         <section className="relative bg-linear-to-br from-blue-50 via-white to-purple-50 py-20 md:py-28 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -328,8 +324,6 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
-
-      <Footer />
 
       <style jsx>{`
         @keyframes blob {

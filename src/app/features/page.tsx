@@ -1,6 +1,5 @@
 "use client";
 
-import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { LiveEditorFeature } from "@/components/landing/features/LiveEditorFeature";
 import { PaymentTrackingFeature } from "@/components/landing/features/PaymentTrackingFeature";
@@ -18,7 +17,6 @@ export default function FeaturesPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <Navbar />
       <main className="flex-1">
         <FeaturesHero />
         <LiveEditorFeature />
@@ -204,7 +202,6 @@ export default function FeaturesPage() {
           `}</style>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

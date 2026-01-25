@@ -5,6 +5,8 @@ import Sessionprovider from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { cn } from "@/lib/utils";
+import { Navbar } from "@/components/landing/Navbar";
+import { Footer } from "@/components/landing/Footer";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
@@ -25,7 +27,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn(albertSans.className, "tracking-tighter")}>
         <QueryProvider>
-          <Sessionprovider>{children}</Sessionprovider>
+          <Sessionprovider>
+            <Navbar />
+            {children}
+            <Footer />
+          </Sessionprovider>
         </QueryProvider>
         <Toaster
           position="top-right"
