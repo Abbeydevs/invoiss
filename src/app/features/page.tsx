@@ -1,6 +1,5 @@
 "use client";
 
-import { Footer } from "@/components/landing/Footer";
 import { LiveEditorFeature } from "@/components/landing/features/LiveEditorFeature";
 import { PaymentTrackingFeature } from "@/components/landing/features/PaymentTrackingFeature";
 import { Button } from "@/components/ui/button";
