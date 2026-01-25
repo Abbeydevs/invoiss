@@ -64,15 +64,10 @@ export function Sidebar() {
     useSidebar();
   const [showBillingModal, setShowBillingModal] = useState(false);
 
-  // Helper to check active state
   const isActive = (href: string) => pathname === href;
 
   return (
     <>
-      {/* =========================================================
-          MOBILE OVERLAY & SLIDE-OUT MENU (For "More" items)
-          This opens when you click "Menu" on the bottom bar
-      ========================================================= */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm lg:hidden"
@@ -131,9 +126,6 @@ export function Sidebar() {
         </nav>
       </aside>
 
-      {/* =========================================================
-          DESKTOP SIDEBAR (Hidden on Mobile/Tablet)
-      ========================================================= */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 hidden lg:flex flex-col",
@@ -168,7 +160,6 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-3">
           {navigation.map((section) => (
             <div key={section.title} className="mb-6">
@@ -215,7 +206,6 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Upgrade Banner (Desktop Only) */}
         {!isPro && !isCollapsed && (
           <div className="p-4 m-4 bg-linear-to-br from-[#1451cb] to-[#0ea5e9] rounded-xl text-white relative overflow-hidden shadow-lg">
             <div className="relative z-10">
@@ -242,12 +232,8 @@ export function Sidebar() {
         )}
       </aside>
 
-      {/* =========================================================
-          MOBILE BOTTOM NAVIGATION (Visible on Mobile/Tablet)
-      ========================================================= */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 lg:hidden pb-safe">
         <div className="flex items-center justify-around h-16 px-2">
-          {/* 1. Dashboard */}
           <Link
             href="/dashboard"
             className={cn(
@@ -261,7 +247,6 @@ export function Sidebar() {
             <span className="text-[10px] font-medium">Home</span>
           </Link>
 
-          {/* 2. Invoices */}
           <Link
             href="/dashboard/invoices"
             className={cn(
@@ -275,7 +260,6 @@ export function Sidebar() {
             <span className="text-[10px] font-medium">Invoices</span>
           </Link>
 
-          {/* 3. CREATE (Floating Action Button) */}
           <div className="-mt-8 relative z-10">
             <Link href="/dashboard/invoices/new">
               <div className="h-14 w-14 rounded-full bg-linear-to-r from-[#1451cb] to-[#0ea5e9] shadow-lg shadow-blue-500/30 flex items-center justify-center text-white transition-transform active:scale-90 hover:scale-105 border-4 border-gray-50/50">
@@ -284,7 +268,6 @@ export function Sidebar() {
             </Link>
           </div>
 
-          {/* 4. Wallet */}
           <Link
             href="/dashboard/wallet"
             className={cn(
