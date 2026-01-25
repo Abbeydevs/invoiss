@@ -4,7 +4,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Users, Wallet, TrendingUp, ArrowRight } from "lucide-react";
+import {
+  FileText,
+  Users,
+  Wallet,
+  TrendingUp,
+  ArrowRight,
+  Plus,
+} from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import {
@@ -59,7 +66,8 @@ export default function DashboardPage() {
       subtitle="Overview of your business performance"
     >
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Stats Grid - Responsive: 1 col mobile, 2 col tablet, 4 col desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Total Revenue"
             value={formatCurrency(stats?.totalRevenue || 0)}
@@ -84,48 +92,57 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 border-0 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Recent Invoices */}
+          <Card className="xl:col-span-2 border-0 shadow-lg overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 bg-white border-b border-gray-100">
               <div>
                 <CardTitle className="text-lg">Recent Invoices</CardTitle>
-                <CardDescription>
+                <CardDescription className="hidden sm:block">
                   Latest transactions from your business
                 </CardDescription>
               </div>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" className="h-8">
                 <Link href="/dashboard/invoices">View All</Link>
               </Button>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-0">
+              <div className="divide-y divide-gray-100">
                 {stats?.recentInvoices.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    No invoices yet. Create your first one!
+                  <div className="text-center py-12 px-4">
+                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FileText className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-sm mb-4">
+                      No invoices yet.
+                    </p>
+                    <Button asChild size="sm">
+                      <Link href="/dashboard/invoices/new">Create Invoice</Link>
+                    </Button>
                   </div>
                 ) : (
                   stats?.recentInvoices.map((invoice) => (
                     <div
                       key={invoice.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer group"
                       onClick={() =>
                         router.push(`/dashboard/invoices/${invoice.id}`)
                       }
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border border-gray-200 text-gray-500 group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
+                      <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+                        <div className="shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                           <FileText className="h-5 w-5" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
                             {invoice.customer?.name || invoice.billToName}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 truncate">
                             {invoice.invoiceNumber}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 pl-2 shrink-0">
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-900">
                             {formatCurrency(invoice.totalAmount)}
@@ -134,7 +151,19 @@ export default function DashboardPage() {
                             {format(new Date(invoice.invoiceDate), "MMM d")}
                           </p>
                         </div>
-                        <InvoiceStatusBadge status={invoice.status} />
+                        <div className="hidden sm:block">
+                          <InvoiceStatusBadge status={invoice.status} />
+                        </div>
+                        {/* Mobile Status Dot */}
+                        <div
+                          className={`sm:hidden h-2.5 w-2.5 rounded-full ${
+                            invoice.status === "PAID"
+                              ? "bg-green-500"
+                              : invoice.status === "OVERDUE"
+                                ? "bg-red-500"
+                                : "bg-yellow-500"
+                          }`}
+                        />
                       </div>
                     </div>
                   ))
@@ -143,41 +172,52 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Quick Actions */}
           <Card className="border-0 shadow-lg bg-linear-to-br from-[#1451cb] to-[#0ea5e9] text-white">
             <CardHeader>
               <CardTitle className="text-white">Quick Actions</CardTitle>
               <CardDescription className="text-blue-100">
-                Common tasks you can do right now
+                Common tasks
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button
                 asChild
-                className="w-full bg-white text-[#1451cb] hover:bg-blue-50 justify-between group"
+                size="lg"
+                className="w-full bg-white text-[#1451cb] hover:bg-blue-50 justify-between group shadow-lg"
               >
                 <Link href="/dashboard/invoices/new">
-                  <span>Create New Invoice</span>
+                  <span className="flex items-center gap-2 font-semibold">
+                    <Plus className="h-5 w-5" />
+                    Create New Invoice
+                  </span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="ghost"
-                className="w-full text-white hover:bg-white/10 justify-between hover:text-white"
+                className="w-full text-white hover:bg-white/10 justify-between hover:text-white h-12"
               >
                 <Link href="/dashboard/customers">
-                  <span>Add Customer</span>
-                  <Users className="h-4 w-4" />
+                  <span className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Add Customer
+                  </span>
+                  <ArrowRight className="h-4 w-4 opacity-50" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="ghost"
-                className="w-full text-white hover:bg-white/10 justify-between hover:text-white"
+                className="w-full text-white hover:bg-white/10 justify-between hover:text-white h-12"
               >
                 <Link href="/dashboard/settings">
-                  <span>Update Brand Settings</span>
-                  <TrendingUp className="h-4 w-4" />
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Brand Settings
+                  </span>
+                  <ArrowRight className="h-4 w-4 opacity-50" />
                 </Link>
               </Button>
             </CardContent>

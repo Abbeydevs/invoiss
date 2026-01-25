@@ -2,7 +2,6 @@
 
 import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
-import { MobileRestriction } from "../common/MobileRestriction";
 import { GlobalAlert } from "./GlobalAlert";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
 import { cn } from "@/lib/utils";
@@ -23,29 +22,29 @@ function DashboardLayoutContent({
   const { isCollapsed } = useSidebar();
 
   return (
-    <div className="min-h-screen gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      <MobileRestriction />
-
+    <div className="min-h-screen bg-gray-50/50">
       <Sidebar />
 
       <div
         className={cn(
-          "transition-all duration-300",
+          "transition-all duration-300 min-h-screen flex flex-col",
           isCollapsed ? "lg:pl-20" : "lg:pl-72",
+          "pb-20 lg:pb-0",
         )}
       >
         <DashboardHeader />
 
-        <main className="p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
             <GlobalAlert />
-            <div className="mb-6 flex flex-col sm:flex-row items-start justify-between gap-4">
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-gray-600 text-sm md:text-base">
+                  <p className="text-gray-500 text-sm sm:text-base">
                     {subtitle}
                   </p>
                 )}

@@ -12,8 +12,10 @@ import {
   Settings,
   HelpCircle,
   ChevronLeft,
-  Menu,
   Sparkles,
+  Plus,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -62,27 +64,80 @@ export function Sidebar() {
     useSidebar();
   const [showBillingModal, setShowBillingModal] = useState(false);
 
+  // Helper to check active state
+  const isActive = (href: string) => pathname === href;
+
   return (
     <>
-      <Button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md hover:shadow-lg transition-all"
-      >
-        <Menu className="h-6 w-6 text-gray-700" />
-      </Button>
-
+      {/* =========================================================
+          MOBILE OVERLAY & SLIDE-OUT MENU (For "More" items)
+          This opens when you click "Menu" on the bottom bar
+      ========================================================= */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
+          "fixed top-0 left-0 z-50 h-screen w-72 bg-white shadow-2xl transition-transform duration-300 lg:hidden flex flex-col",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-xl text-gray-900">Menu</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMobileOpen(false)}
+          >
+            <X className="h-6 w-6 text-gray-500" />
+          </Button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-6 px-4">
+          {navigation.map((section) => (
+            <div key={section.title} className="mb-6">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                {section.title}
+              </h3>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all",
+                        isActive(item.href)
+                          ? "bg-blue-50 text-[#1451cb]"
+                          : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {/* =========================================================
+          DESKTOP SIDEBAR (Hidden on Mobile/Tablet)
+      ========================================================= */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 hidden lg:flex flex-col",
           isCollapsed ? "w-20" : "w-72",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 shrink-0">
@@ -102,7 +157,7 @@ export function Sidebar() {
           )}
           <Button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <ChevronLeft
               className={cn(
@@ -113,7 +168,7 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {/* Navigation */}
+        {/* Desktop Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-3">
           {navigation.map((section) => (
             <div key={section.title} className="mb-6">
@@ -124,16 +179,14 @@ export function Sidebar() {
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = pathname === item.href;
                   const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setIsMobileOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
-                        isActive
+                        isActive(item.href)
                           ? "bg-[#1451cb] text-white shadow-lg shadow-blue-500/20"
                           : "text-gray-700 hover:bg-gray-100",
                       )}
@@ -141,7 +194,7 @@ export function Sidebar() {
                       <Icon
                         className={cn(
                           "h-5 w-5 shrink-0",
-                          isActive
+                          isActive(item.href)
                             ? "text-white"
                             : "text-gray-500 group-hover:text-[#1451cb]",
                         )}
@@ -162,7 +215,7 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Upgrade Banner (Only for Basic Users) */}
+        {/* Upgrade Banner (Desktop Only) */}
         {!isPro && !isCollapsed && (
           <div className="p-4 m-4 bg-linear-to-br from-[#1451cb] to-[#0ea5e9] rounded-xl text-white relative overflow-hidden shadow-lg">
             <div className="relative z-10">
@@ -173,7 +226,7 @@ export function Sidebar() {
                 <span className="font-semibold text-sm">Upgrade to Pro</span>
               </div>
               <p className="text-xs text-blue-100 mb-3 leading-relaxed">
-                Unlock unlimited invoices, payments, and premium templates.
+                Unlock unlimited invoices and premium features.
               </p>
               <Button
                 size="sm"
@@ -184,24 +237,81 @@ export function Sidebar() {
                 Upgrade Now
               </Button>
             </div>
-
             <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-            <div className="absolute -top-4 -left-4 w-20 h-20 bg-blue-500/20 rounded-full blur-xl" />
-          </div>
-        )}
-
-        {!isPro && isCollapsed && (
-          <div className="p-2 mb-4">
-            <Button
-              size="icon"
-              className="bg-linear-to-br from-[#1451cb] to-[#0ea5e9] hover:opacity-90"
-              onClick={() => setShowBillingModal(true)}
-            >
-              <Sparkles className="h-4 w-4 text-white" />
-            </Button>
           </div>
         )}
       </aside>
+
+      {/* =========================================================
+          MOBILE BOTTOM NAVIGATION (Visible on Mobile/Tablet)
+      ========================================================= */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 lg:hidden pb-safe">
+        <div className="flex items-center justify-around h-16 px-2">
+          {/* 1. Dashboard */}
+          <Link
+            href="/dashboard"
+            className={cn(
+              "flex flex-col items-center justify-center w-16 h-full gap-1 active:scale-95 transition-transform",
+              isActive("/dashboard")
+                ? "text-[#1451cb]"
+                : "text-gray-500 hover:text-gray-900",
+            )}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Home</span>
+          </Link>
+
+          {/* 2. Invoices */}
+          <Link
+            href="/dashboard/invoices"
+            className={cn(
+              "flex flex-col items-center justify-center w-16 h-full gap-1 active:scale-95 transition-transform",
+              isActive("/dashboard/invoices")
+                ? "text-[#1451cb]"
+                : "text-gray-500 hover:text-gray-900",
+            )}
+          >
+            <FileText className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Invoices</span>
+          </Link>
+
+          {/* 3. CREATE (Floating Action Button) */}
+          <div className="-mt-8 relative z-10">
+            <Link href="/dashboard/invoices/new">
+              <div className="h-14 w-14 rounded-full bg-linear-to-r from-[#1451cb] to-[#0ea5e9] shadow-lg shadow-blue-500/30 flex items-center justify-center text-white transition-transform active:scale-90 hover:scale-105 border-4 border-gray-50/50">
+                <Plus className="h-7 w-7" />
+              </div>
+            </Link>
+          </div>
+
+          {/* 4. Wallet */}
+          <Link
+            href="/dashboard/wallet"
+            className={cn(
+              "flex flex-col items-center justify-center w-16 h-full gap-1 active:scale-95 transition-transform",
+              isActive("/dashboard/wallet")
+                ? "text-[#1451cb]"
+                : "text-gray-500 hover:text-gray-900",
+            )}
+          >
+            <Wallet className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Wallet</span>
+          </Link>
+
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            className={cn(
+              "flex flex-col items-center justify-center w-16 h-full gap-1 active:scale-95 transition-transform",
+              isMobileOpen
+                ? "text-[#1451cb]"
+                : "text-gray-500 hover:text-gray-900",
+            )}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Menu</span>
+          </button>
+        </div>
+      </div>
 
       <BillingModal
         open={showBillingModal}
