@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, Sparkles, Lock } from "lucide-react";
+import { Eye, Plus, Sparkles, Lock, ArrowRight } from "lucide-react";
 import { Template } from "@/lib/types";
 import { UpgradeModal } from "@/components/billing/UpgradeModal";
 import { TemplatePreviewModal } from "./TemplatePreviewModal";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface TemplateCardProps {
   template: Template;
@@ -40,9 +41,12 @@ export function TemplateCard({ template, href }: TemplateCardProps) {
 
   return (
     <>
-      <Card className="border-0 shadow-lg transition-all hover:shadow-xl group relative overflow-hidden h-[300px]">
-        <CardContent className="p-0 h-full flex flex-col">
-          <div className="relative flex-1 bg-gray-100 flex items-center justify-center overflow-hidden">
+      <Card className="group relative overflow-hidden border-0 shadow-md transition-all hover:shadow-xl active:scale-[0.98] duration-200 bg-white rounded-xl">
+        <CardContent className="p-0 flex flex-col h-full">
+          <div
+            className="relative aspect-3/4 sm:aspect-4/3 w-full bg-gray-100 overflow-hidden cursor-pointer"
+            onClick={() => handleAction("preview")}
+          >
             {template.thumbnail ? (
               <Image
                 src={template.thumbnail}
@@ -52,61 +56,83 @@ export function TemplateCard({ template, href }: TemplateCardProps) {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                No Preview Available
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm gap-2">
+                <FileText className="h-8 w-8 opacity-20" />
+                <span>No Preview</span>
               </div>
             )}
 
-            {template.isPremium && !isProUser && (
-              <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 z-10">
-                <Lock className="h-3 w-3" /> Pro
+            <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+
+            {template.isPremium && (
+              <div className="absolute top-3 right-3 z-10">
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md",
+                    isProUser
+                      ? "bg-amber-100/90 text-amber-700 border border-amber-200"
+                      : "bg-gray-900/90 text-white border border-gray-700",
+                  )}
+                >
+                  {isProUser ? (
+                    <Sparkles className="h-3 w-3" />
+                  ) : (
+                    <Lock className="h-3 w-3" />
+                  )}
+                  <span>PRO</span>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-white border-t border-gray-100">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">{template.name}</h3>
-              {template.isPremium && (
-                <div className="flex items-center gap-1 text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
-                  <Sparkles className="h-3 w-3" />
-                  Pro
-                </div>
-              )}
+          <div className="p-4 flex flex-col gap-3 border-t border-gray-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">
+                  {template.name}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Professional Invoice
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAction("preview")}
+                className="w-full text-xs h-9 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+              >
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                Preview
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={() => handleAction("use")}
+                className={cn(
+                  "w-full text-xs h-9 shadow-sm",
+                  template.isPremium && !isProUser
+                    ? "bg-gray-900 hover:bg-gray-800 text-white"
+                    : "bg-[#1451cb] hover:bg-[#1451cb]/90 text-white",
+                )}
+              >
+                {template.isPremium && !isProUser ? (
+                  <>
+                    <Lock className="h-3.5 w-3.5 mr-1.5" />
+                    Unlock
+                  </>
+                ) : (
+                  <>
+                    Use
+                    <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </CardContent>
-
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 z-20">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              handleAction("preview");
-            }}
-            className="bg-white text-gray-900 border-0 hover:bg-gray-100"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Preview
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              handleAction("use");
-            }}
-            className="bg-[#1451cb] hover:bg-[#1451cb]/90 border-0"
-          >
-            {template.isPremium && !isProUser ? (
-              <Lock className="h-4 w-4 mr-2" />
-            ) : (
-              <Plus className="h-4 w-4 mr-2" />
-            )}
-            Use Template
-          </Button>
-        </div>
       </Card>
 
       <UpgradeModal
@@ -124,22 +150,33 @@ export function TemplateCard({ template, href }: TemplateCardProps) {
   );
 }
 
+import { FileText } from "lucide-react";
+
 export function StartFromScratchCard() {
   return (
-    <Link href="/dashboard/invoices/create?template=custom">
-      <Card className="border-2 border-dashed border-gray-300 shadow-none h-[300px] transition-all hover:shadow-lg hover:border-blue-500 group cursor-pointer">
-        <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-4 bg-gray-50 rounded-full group-hover:bg-blue-50 transition-colors">
+    <Link
+      href="/dashboard/invoices/create?template=custom"
+      className="block h-full"
+    >
+      <Card className="h-full border-2 border-dashed border-gray-300 shadow-none hover:border-blue-500 hover:bg-blue-50/30 transition-all duration-200 group rounded-xl bg-gray-50/50">
+        <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center space-y-4 min-h-[300px]">
+          <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
             <Plus className="h-8 w-8 text-gray-400 group-hover:text-[#1451cb] transition-colors" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 text-lg">
+            <h3 className="font-bold text-gray-900 text-lg group-hover:text-[#1451cb] transition-colors">
               Start from Scratch
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Simple, clean invoice layout
+            <p className="text-sm text-gray-500 mt-2 max-w-[200px] mx-auto leading-relaxed">
+              Create a simple, clean invoice with no predefined styling.
             </p>
           </div>
+          <Button
+            variant="ghost"
+            className="text-[#1451cb] hover:text-[#1451cb] hover:bg-blue-100/50 group-hover:bg-blue-100/50 -mb-2"
+          >
+            Create Blank <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </CardContent>
       </Card>
     </Link>
