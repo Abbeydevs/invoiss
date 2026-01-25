@@ -32,7 +32,6 @@ export default function NewInvoiceTemplatePage() {
       return <p className="text-center text-red-500">Error: {error.message}</p>;
     }
 
-    // Filter out "custom" because we have a dedicated StartFromScratchCard for it
     const defaultTemplates = templateData?.defaultTemplates.filter(
       (t) => t.id !== "custom",
     );
@@ -42,7 +41,6 @@ export default function NewInvoiceTemplatePage() {
 
     return (
       <div className="space-y-8">
-        {/* Free Templates Section */}
         <div>
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -63,7 +61,6 @@ export default function NewInvoiceTemplatePage() {
           </div>
         </div>
 
-        {/* Premium Templates Section */}
         {customTemplates && customTemplates.length > 0 && (
           <div>
             <div className="mb-4 flex items-center gap-3">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { FileText } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { InvoiceDataTable } from "@/components/invoice/InvoiceDataTable";
 import { columns } from "@/components/invoice/InvoiceTableColumns";
@@ -37,7 +37,10 @@ export default function InvoicesPage() {
           title="No invoices found"
           description="Create your first invoice to get started."
           actionButton={
-            <Button asChild className="bg-[#1451cb] hover:bg-[#1451cb]/90">
+            <Button
+              asChild
+              className="bg-[#1451cb] hover:bg-[#1451cb]/90 w-full sm:w-auto"
+            >
               <Link href="/dashboard/invoices/new">Create Invoice</Link>
             </Button>
           }
@@ -54,13 +57,19 @@ export default function InvoicesPage() {
       subtitle="View and manage all your invoices"
       action={
         !isLoading && invoices && invoices.length > 0 ? (
-          <Button asChild className="bg-[#1451cb] hover:bg-[#1451cb]/90">
-            <Link href="/dashboard/invoices/new">Create Invoice</Link>
+          <Button
+            asChild
+            className="bg-[#1451cb] hover:bg-[#1451cb]/90 w-full sm:w-auto shadow-sm"
+          >
+            <Link href="/dashboard/invoices/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Link>
           </Button>
         ) : null
       }
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 lg:pb-0">
         {renderContent()}
       </div>
     </DashboardLayout>
