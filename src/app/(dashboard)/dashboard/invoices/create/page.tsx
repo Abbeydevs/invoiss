@@ -1,13 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 import {
   invoiceSchema,
   InvoiceFormValues,
@@ -21,10 +20,10 @@ import {
 import { InvoiceEditorForm } from "@/components/invoice/InvoiceEditorForm";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Eye, PenLine } from "lucide-react";
 import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { InvoiceDetail } from "@/lib/types";
-import { MobileRestriction } from "@/components/common/MobileRestriction";
+import { cn } from "@/lib/utils";
 
 function CreateInvoicePageContent() {
   const router = useRouter();
@@ -35,6 +34,7 @@ function CreateInvoicePageContent() {
   const isEditMode = !!invoiceId;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
@@ -251,66 +251,121 @@ function CreateInvoicePageContent() {
   } as InvoiceDetail;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50">
-      {/* Header Bar */}
-      <div className="flex-none bg-white border-b border-gray-200 px-6 py-4">
+    <div className="fixed inset-0 flex flex-col bg-gray-50 h-dvh">
+      <div className="flex-none bg-white border-b border-gray-200 px-4 py-3 lg:px-6 lg:py-4 z-20">
         <div className="flex items-center justify-between max-w-[1800px] mx-auto">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => router.push("/dashboard/invoices")}
-              className="hover:bg-gray-100"
+              className="hover:bg-gray-100 -ml-2 lg:ml-0"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-lg lg:text-xl font-semibold text-gray-900">
                 {isEditMode ? "Edit Invoice" : "Create Invoice"}
               </h1>
-              <p className="text-sm text-gray-500">
-                Fill in the details to {isEditMode ? "update" : "create"} your
-                invoice
+              <p className="text-xs lg:text-sm text-gray-500 hidden sm:block">
+                {isEditMode ? "Update details" : "Fill details"} to continue
               </p>
             </div>
           </div>
-          <Button
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-            className="bg-linear-to-r from-[#1451cb] to-[#0ea5e9] hover:from-[#1451cb]/90 hover:to-[#0ea5e9]/90 text-white shadow-lg"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : isEditMode ? (
-              "Save Changes"
-            ) : (
-              "Save & Preview"
-            )}
-          </Button>
+
+          <div className="flex items-center gap-3">
+            <div className="lg:hidden flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              <Button
+                variant="secondary"
+                onClick={() => setMobileView("edit")}
+                className={cn(
+                  "p-2 rounded-md transition-all",
+                  mobileView === "edit"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-500",
+                )}
+              >
+                <PenLine className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setMobileView("preview")}
+                className={cn(
+                  "p-2 rounded-md transition-all",
+                  mobileView === "preview"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-500",
+                )}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              size="sm"
+              className="bg-linear-to-r from-[#1451cb] to-[#0ea5e9] hover:from-[#1451cb]/90 hover:to-[#0ea5e9]/90 text-white shadow-lg lg:h-10 lg:px-4"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">Saving...</span>
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">
+                    {isEditMode ? "Save Changes" : "Save & Preview"}
+                  </span>
+                  <span className="sm:hidden">Save</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-[420px] flex-none bg-white border-r border-gray-200 overflow-y-auto">
+      {/* Main Content Area - Responsive Split */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Editor Side (Form) */}
+        <div
+          className={cn(
+            "flex-none bg-white border-r border-gray-200 overflow-y-auto w-full lg:w-[420px] transition-transform duration-300 absolute inset-0 lg:relative z-10 lg:z-0",
+            // On mobile: Hide if viewing preview
+            mobileView === "preview"
+              ? "-translate-x-full lg:translate-x-0"
+              : "translate-x-0",
+          )}
+        >
           <InvoiceEditorForm form={form} isSubmitting={isSubmitting} />
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-gray-100">
-          <div className="p-8 min-h-full">
-            <div className="max-w-5xl mx-auto">
+        {/* Preview Side */}
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-gray-100 absolute inset-0 lg:relative transition-transform duration-300",
+            // On mobile: Hide if viewing edit form
+            mobileView === "edit"
+              ? "translate-x-full lg:translate-x-0"
+              : "translate-x-0",
+          )}
+        >
+          <div className="p-4 lg:p-8 min-h-full flex flex-col items-center">
+            <div className="w-full max-w-5xl mx-auto">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-gray-800 hidden lg:block">
                   Live Preview
                 </h2>
-                <div className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full hidden lg:block">
                   Draft
                 </div>
               </div>
-              <div className="transform scale-90 origin-top">
-                <InvoicePreview invoice={previewData} />
+
+              {/* Scaled preview container */}
+              <div className="w-full overflow-x-auto lg:overflow-visible pb-10">
+                <div className="min-w-[600px] lg:min-w-0 origin-top transform lg:scale-95">
+                  <InvoicePreview invoice={previewData} />
+                </div>
               </div>
             </div>
           </div>
@@ -323,7 +378,7 @@ function CreateInvoicePageContent() {
 export default function NewInvoicePage() {
   return (
     <>
-      <MobileRestriction />
+      {/* Removed MobileRestriction */}
       <Suspense
         fallback={
           <div className="p-8">

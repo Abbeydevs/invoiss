@@ -128,21 +128,26 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
 
   return (
     <Form {...form}>
-      <form className="space-y-6 p-6">
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Bill To</CardTitle>
+      <form className="space-y-6 p-4 lg:p-6 pb-24 lg:pb-6">
+        <Card className="border-0 shadow-sm lg:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">Bill To</CardTitle>
             <Dialog
               open={customerModalOpen}
               onOpenChange={setCustomerModalOpen}
             >
               <DialogTrigger asChild>
-                <Button type="button" variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs lg:text-sm"
+                >
+                  <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                   New Customer
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="w-[95vw] max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Add New Customer</DialogTitle>
                 </DialogHeader>
@@ -153,13 +158,15 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               </DialogContent>
             </Dialog>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
             <FormField
               control={form.control}
               name="customerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select Customer</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Select Customer
+                  </FormLabel>
                   <Popover
                     open={customerComboboxOpen}
                     onOpenChange={setCustomerComboboxOpen}
@@ -170,8 +177,8 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            "w-full justify-between h-9 lg:h-10 text-sm",
+                            !field.value && "text-muted-foreground",
                           )}
                           disabled={isLoadingCustomers}
                         >
@@ -179,7 +186,7 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                           {!isLoadingCustomers &&
                             (field.value
                               ? customers?.find(
-                                  (c: Customer) => c.id === field.value
+                                  (c: Customer) => c.id === field.value,
                                 )?.name
                               : "Select customer")}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -188,7 +195,10 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                       <Command>
-                        <CommandInput placeholder="Search customers..." />
+                        <CommandInput
+                          placeholder="Search customers..."
+                          className="h-9"
+                        />
                         <CommandEmpty>No customers found.</CommandEmpty>
                         <CommandList>
                           <CommandGroup>
@@ -202,25 +212,26 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                                     form.setValue("billToName", customer.name);
                                     form.setValue(
                                       "billToEmail",
-                                      customer.email
+                                      customer.email,
                                     );
                                     form.setValue(
                                       "billToPhone",
-                                      customer.phone || ""
+                                      customer.phone || "",
                                     );
                                     form.setValue(
                                       "billToAddress",
-                                      customer.address || ""
+                                      customer.address || "",
                                     );
                                     setCustomerComboboxOpen(false);
                                   }}
+                                  className="text-sm"
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
                                       field.value === customer.id
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   {customer.name}
@@ -241,9 +252,15 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="billToName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Name *</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Customer Name *
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input
+                      placeholder="John Doe"
+                      {...field}
+                      className="h-9 lg:h-10 bg-white"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -254,12 +271,13 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="billToEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email *</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">Email *</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       placeholder="john@example.com"
                       {...field}
+                      className="h-9 lg:h-10 bg-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -271,9 +289,13 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="billToPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="+234 800 000 0000" {...field} />
+                    <Input
+                      placeholder="+234 800 000 0000"
+                      {...field}
+                      className="h-9 lg:h-10 bg-white"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -284,9 +306,13 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="billToAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Customer address" {...field} />
+                    <Textarea
+                      placeholder="Customer address"
+                      {...field}
+                      className="min-h-20 bg-white text-sm"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -295,25 +321,27 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">Details</CardTitle>
+        <Card className="border-0 shadow-sm lg:shadow-lg">
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
             <FormField
               control={form.control}
               name="invoiceDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Invoice Date *</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Invoice Date *
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            "w-full pl-3 text-left font-normal h-9 lg:h-10 text-sm",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -343,15 +371,17 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date *</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Due Date *
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            "w-full pl-3 text-left font-normal h-9 lg:h-10 text-sm",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -382,14 +412,16 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="bankAccountId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Account *</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Bank Account *
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isLoadingBanks}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 lg:h-10 text-sm">
                         <SelectValue
                           placeholder={
                             isLoadingBanks
@@ -402,7 +434,11 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     <SelectContent>
                       {Array.isArray(bankAccounts) &&
                         bankAccounts?.map((account: BankAccount) => (
-                          <SelectItem key={account.id} value={account.id}>
+                          <SelectItem
+                            key={account.id}
+                            value={account.id}
+                            className="text-sm"
+                          >
                             {`${account.bankName} - (...${account.accountNumber.slice(-4)})`}
                           </SelectItem>
                         ))}
@@ -415,28 +451,27 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Items</CardTitle>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  append({ description: "", quantity: 1, unitPrice: 0 })
-                }
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
-            </div>
+        <Card className="border-0 shadow-sm lg:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">Items</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs lg:text-sm"
+              onClick={() =>
+                append({ description: "", quantity: 1, unitPrice: 0 })
+              }
+            >
+              <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+              Add Item
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="grid grid-cols-12 gap-3 items-start p-4 bg-gray-50 rounded-lg"
+                className="grid grid-cols-12 gap-3 items-start p-3 bg-gray-50 rounded-lg border border-gray-100"
               >
                 <div className="col-span-12">
                   <FormField
@@ -444,9 +479,15 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     name={`items.${index}.description`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs">Description</FormLabel>
+                        <FormLabel className="text-xs text-gray-500">
+                          Description
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Item description" {...field} />
+                          <Input
+                            placeholder="Item description"
+                            {...field}
+                            className="h-9 bg-white text-sm"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -459,12 +500,15 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     name={`items.${index}.quantity`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs">Qty</FormLabel>
+                        <FormLabel className="text-xs text-gray-500">
+                          Qty
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min="1"
                             {...field}
+                            className="h-9 bg-white text-sm"
                             onChange={(e) =>
                               field.onChange(parseFloat(e.target.value))
                             }
@@ -481,12 +525,15 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     name={`items.${index}.unitPrice`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs">Price</FormLabel>
+                        <FormLabel className="text-xs text-gray-500">
+                          Price
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="0.00"
+                            className="h-9 bg-white text-sm"
                           />
                         </FormControl>
                         <FormMessage />
@@ -494,13 +541,13 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     )}
                   />
                 </div>
-                <div className="col-span-2 flex items-end pb-2">
+                <div className="col-span-2 flex items-end pb-1 justify-end">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     onClick={() => remove(index)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 h-9 w-9"
                     disabled={fields.length <= 1}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -511,17 +558,21 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">Tax & Discount</CardTitle>
+        <Card className="border-0 shadow-sm lg:shadow-lg">
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">
+              Tax & Discount
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
             <FormField
               control={form.control}
               name="taxRate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax Rate (%)</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Tax Rate (%)
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -530,6 +581,7 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                       step="0.01"
                       placeholder="0"
                       {...field}
+                      className="h-9 lg:h-10 bg-white"
                       onChange={(e) =>
                         field.onChange(parseFloat(e.target.value) || 0)
                       }
@@ -539,19 +591,19 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="discountType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type</FormLabel>
+                    <FormLabel className="text-xs lg:text-sm">Type</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-9 lg:h-10 bg-white">
                           <SelectValue placeholder="Type" />
                         </SelectTrigger>
                       </FormControl>
@@ -569,7 +621,9 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                 name="discountValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Discount</FormLabel>
+                    <FormLabel className="text-xs lg:text-sm">
+                      Discount
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -577,6 +631,7 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                         step="0.01"
                         placeholder="0"
                         {...field}
+                        className="h-9 lg:h-10 bg-white"
                         onChange={(e) =>
                           field.onChange(parseFloat(e.target.value) || 0)
                         }
@@ -592,24 +647,26 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
 
         <MilestoneManager />
 
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">Additional Details</CardTitle>
+        <Card className="border-0 shadow-sm lg:shadow-lg">
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">
+              Additional Details
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
             <FormField
               control={form.control}
               name="templateId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Template</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">Template</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isLoadingTemplates}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 lg:h-10">
                         <SelectValue
                           placeholder={
                             isLoadingTemplates
@@ -641,11 +698,17 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="paymentTerms"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Terms</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Payment Terms
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Net 30" {...field} />
+                    <Input
+                      placeholder="e.g., Net 30"
+                      {...field}
+                      className="h-9 lg:h-10 bg-white"
+                    />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs">
                     Payment terms and conditions
                   </FormDescription>
                   <FormMessage />
@@ -657,11 +720,11 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel className="text-xs lg:text-sm">Notes</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Additional notes or instructions"
-                      className="min-h-[100px]"
+                      className="min-h-[100px] bg-white text-sm"
                       {...field}
                     />
                   </FormControl>

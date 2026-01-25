@@ -23,28 +23,30 @@ Invoiss is a comprehensive invoicing and billing platform designed for small to 
 
 - User registration and authentication with role-based access
 - Customer management (CRUD operations)
-- Invoice creation with customizable templates
+- **Complete invoice management system** (create, edit, view, list, templates)
 - Payment tracking and milestone-based payments
-- Bank account integration for payment details
-- Dashboard with business analytics
+- Bank account integration with Nomba API
+- **Advanced analytics dashboard** with charts and business metrics
+- **Wallet system** for Pro users with transaction tracking
 - Email notifications for invoices
-- Subscription management (Basic/Pro plans)
+- **Subscription management** with Nomba payment processing
 - Team collaboration features
-- Admin panel for system management
+- Admin panel for user and system management
 - Image upload for logos and templates
+- **PDF generation** capabilities for invoices
+- Template system for invoice customization
 
 ## Features Planned but NOT Implemented
 
-- Full Nomba payment gateway integration (API keys configured but not fully wired)
-- Wallet system for receiving payments directly
-- Advanced reporting and analytics
+- Full Nomba payment gateway integration (API keys configured but webhook handling incomplete)
+- Advanced reporting and analytics (basic analytics implemented, advanced features pending)
 - Mobile app companion
 - API for third-party integrations
 - Multi-currency support (currently NGN only)
 - Automated payment reminders
-- Invoice PDF generation and download
-- Advanced template customization
 - Bulk invoice operations
+- Advanced template customization (basic templates implemented)
+- Wallet deposit/withdrawal UI (wallet viewing implemented)
 
 # 2. TECH STACK
 
@@ -74,8 +76,11 @@ Invoiss is a comprehensive invoicing and billing platform designed for small to 
 
 - **Resend**: Email service for invoice notifications and password resets
 - **Cloudinary**: Image storage and optimization for logos and templates
-- **Nomba**: Nigerian payment gateway (configured but not fully implemented)
+- **Nomba**: Nigerian payment gateway (partially implemented - bank lists and subscriptions working)
 - **React Email**: HTML email templates with Tailwind CSS
+- **Recharts**: Data visualization for analytics dashboard
+- **html-to-image**: Convert HTML to images for PDF generation
+- **jsPDF**: PDF generation for invoices
 
 ## Hosting/Deployment Assumptions
 
@@ -151,14 +156,26 @@ bcrypt.compare() → JWT Token Creation → Session Storage → Protected Routes
 │   │   ├── (auth)/           # Authentication routes (login, register, etc.)
 │   │   ├── (dashboard)/      # Protected dashboard routes
 │   │   │   ├── dashboard/    # Main dashboard page
-│   │   │   └── [other routes]
+│   │   │   ├── analytics/    # Business analytics with charts
+│   │   │   ├── bank-accounts/# Bank account management
+│   │   │   ├── billing/      # Subscription management
+│   │   │   ├── customers/    # Customer management
+│   │   │   ├── help/         # Help and support
+│   │   │   ├── invoices/     # Complete invoice management system
+│   │   │   │   ├── [id]/     # Individual invoice view/edit
+│   │   │   │   ├── create/   # Invoice creation form
+│   │   │   │   └── new/      # Template selection for new invoices
+│   │   │   ├── settings/     # User settings
+│   │   │   └── wallet/       # Payment wallet (Pro feature)
 │   │   ├── (marketing)/      # Public marketing pages
 │   │   ├── admin/            # Admin-only routes
 │   │   ├── api/              # API routes
-│   │   │   ├── analytics/    # Dashboard statistics
+│   │   │   ├── analytics/    # Dashboard statistics and charts
 │   │   │   ├── auth/         # Authentication endpoints
 │   │   │   ├── bank-accounts/# Bank account management
-│   │   │   ├── billing/      # Subscription management
+│   │   │   ├── banks/        # Nomba bank list integration
+│   │   │   ├── billing/      # Subscription management and payments
+│   │   │   ├── cron/         # Scheduled tasks
 │   │   │   ├── customers/    # Customer CRUD
 │   │   │   ├── invoices/     # Invoice operations
 │   │   │   ├── profile/      # User profile updates
@@ -404,24 +421,27 @@ Customer (1) ──── (N) Invoice
 - User registration and authentication system
 - Basic dashboard with statistics
 - Customer management (create, read, update, delete)
-- Invoice creation with items, taxes, discounts
-- Invoice status tracking and basic CRUD
-- Bank account management
+- **Complete invoice management system** (create, edit, view, list, templates, PDF generation)
+- Bank account management with Nomba integration
+- **Advanced analytics dashboard** with interactive charts
+- **Wallet system** for Pro users with transaction tracking
 - Email notifications infrastructure
+- **Subscription billing** with Nomba payment processing
 - Admin panel for user and system management
 - Responsive UI with Tailwind CSS and Radix components
 - Database schema with all core entities
 - Type-safe API with Zod validation
 - Basic subscription plan structure
+- Template system for invoice customization
 
 ## What is Partially Implemented
 
 - Payment milestones (created but not fully tracked)
-- Invoice templates (basic structure, no customization UI)
-- Wallet system (database model exists, no UI or logic)
-- Team collaboration (database model, no UI)
-- Nomba integration (API keys configured, no actual payment flow)
-- Image upload (Cloudinary configured, basic usage)
+- Invoice templates (basic system implemented, advanced customization pending)
+- Wallet system (viewing and transaction history implemented, deposit/withdrawal UI pending)
+- Team collaboration (database model exists, UI pending)
+- Nomba integration (bank lists and subscription payments working, full payment processing pending)
+- Image upload (Cloudinary configured, basic usage implemented)
 
 ## What is NOT Implemented
 
@@ -439,7 +459,7 @@ Customer (1) ──── (N) Invoice
 
 ## Where Development Stopped
 
-Development appears to have stopped after implementing core CRUD operations and basic dashboard functionality. The foundation is solid with authentication, database schema, and basic invoice management, but payment processing and advanced features remain incomplete.
+Development has progressed significantly beyond the initial MVP. The core invoicing workflow is fully functional with comprehensive invoice management, analytics, and payment integration. The system now has a complete user experience for creating, managing, and tracking invoices. Development appears to have paused after implementing the subscription billing system and wallet functionality, with payment processing webhooks and advanced features remaining to be completed.
 
 ## What the Next Logical Task Should Be
 

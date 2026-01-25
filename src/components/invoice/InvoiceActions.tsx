@@ -217,8 +217,8 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
                 onClick={() => setIsPaymentModalOpen(true)}
                 className="text-green-700 border-green-200 hover:bg-green-50"
               >
-                <Banknote className="h-4 w-4 mr-2" />
-                Record Payment
+                <Banknote className="h-4 w-4 mr-0 lg:mr-2" />
+                <span className="hidden lg:flex">Record Payment</span>
               </Button>
             )}
 
@@ -233,9 +233,9 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
                 {statusMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-0 lg:mr-2" />
                 )}
-                Mark as Sent
+                <span className="hidden lg:flex">Mark as Sent</span>
               </Button>
             )}
 
@@ -248,9 +248,11 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
               {isDownloading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 mr-0 lg:mr-2" />
               )}
-              {isDownloading ? "Generating..." : "Download PDF"}
+              <span className="hidden lg:flex">
+                {isDownloading ? "Generating..." : "Download PDF"}
+              </span>
             </Button>
 
             <Button
@@ -263,9 +265,11 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
               {isSending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="h-4 w-4 mr-0 lg:mr-2" />
               )}
-              {isSending ? "Sending..." : "Send Invoice"}
+              <span className="hidden lg:flex">
+                {isSending ? "Sending..." : "Send Invoice"}
+              </span>
             </Button>
           </div>
         </div>
