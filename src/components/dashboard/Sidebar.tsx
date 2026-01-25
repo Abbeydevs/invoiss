@@ -148,6 +148,7 @@ export function Sidebar() {
             </Link>
           )}
           <Button
+            variant="ghost"
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
           >

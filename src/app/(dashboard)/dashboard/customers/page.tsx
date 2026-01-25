@@ -7,15 +7,8 @@ import { AddCustomer } from "@/components/customers/AddCustomer";
 import { Customer } from "@/lib/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { TableSkeleton } from "@/components/common/SkeletonLoader";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomerDataTable } from "@/components/customers/CustomerDataTable";
+import { columns } from "@/components/customers/CustomerTableColumns";
 
 async function getCustomers(): Promise<{ customers: Customer[] }> {
   const response = await fetch("/api/customers");
@@ -59,49 +52,7 @@ export default function CustomersPage() {
       );
     }
 
-    return (
-      <div className="shadow-lg border border-gray-200/50 rounded-lg overflow-hidden bg-white">
-        <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow>
-              <TableHead className="font-semibold text-gray-700">
-                Name
-              </TableHead>
-              <TableHead className="font-semibold text-gray-700">
-                Email
-              </TableHead>
-              <TableHead className="font-semibold text-gray-700">
-                Phone
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customerList.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell className="font-medium text-gray-900">
-                  {customer.name}
-                </TableCell>
-                <TableCell className="text-gray-600">
-                  {customer.email}
-                </TableCell>
-                <TableCell className="text-gray-600">
-                  {customer.phone ? (
-                    customer.phone
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="font-normal text-gray-400 border-gray-200"
-                    >
-                      N/A
-                    </Badge>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
+    return <CustomerDataTable columns={columns} data={customerList} />;
   };
 
   return (
@@ -114,7 +65,7 @@ export default function CustomersPage() {
         ) : null
       }
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 lg:pb-0">
         {renderContent()}
       </div>
     </DashboardLayout>
