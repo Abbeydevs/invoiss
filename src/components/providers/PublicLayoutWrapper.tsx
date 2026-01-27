@@ -12,9 +12,10 @@ export function PublicLayoutWrapper({
   const pathname = usePathname();
 
   const isDashboard = pathname?.startsWith("/dashboard");
+  const isAdminDashboard = pathname?.startsWith("/admin");
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
-  if (isDashboard || isAuthPage) {
+  if (isDashboard || isAuthPage || isAdminDashboard) {
     return <>{children}</>;
   }
 
