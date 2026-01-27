@@ -12,7 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { BankAccountForm, BankAccountFormValues } from "./BankAccountForm";
+import { BankAccountFormValues } from "@/lib/validators/bank-account.schema";
+import { BankAccountForm } from "./BankAccountForm";
 
 async function createBankAccount(values: BankAccountFormValues) {
   const response = await fetch("/api/bank-accounts", {
