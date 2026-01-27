@@ -3,29 +3,23 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency: string;
 }
 
-export function PrestigePreview({ invoice }: InvoicePreviewProps) {
+export function PrestigePreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
       className="bg-linear-to-br from-slate-50 to-stone-50 font-sans"
       style={{ minHeight: "297mm" }}
     >
-      {/* Luxurious Header */}
       <div className="relative bg-white border-b-4 border-double border-slate-800 px-14 py-10">
         <div className="absolute top-0 left-0 w-40 h-40 bg-linear-to-br from-blue-900/5 to-purple-900/5 rounded-full -translate-x-20 -translate-y-20"></div>
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-linear-to-tl from-blue-900/5 to-purple-900/5 rounded-full translate-x-20 translate-y-20"></div>
@@ -72,12 +66,9 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="px-14 py-10">
-        {/* Client & Date Information */}
         <div className="bg-white rounded-none border-2 border-slate-800 shadow-lg mb-10 overflow-hidden">
           <div className="grid grid-cols-5">
-            {/* Bill To Section */}
             <div className="col-span-3 p-8 border-r-2 border-slate-800">
               <div className="mb-4 pb-2 border-b-2 border-slate-200">
                 <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">
@@ -98,7 +89,6 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
               </div>
             </div>
 
-            {/* Dates Section */}
             <div className="col-span-2 bg-slate-50 p-8 space-y-6">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
@@ -121,7 +111,6 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
           </div>
         </div>
 
-        {/* Items Table */}
         <div className="mb-10 border-2 border-slate-800 rounded-none overflow-hidden shadow-lg bg-white">
           <div className="bg-slate-900 text-white">
             <div className="flex px-8 py-5">
@@ -156,10 +145,10 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                 {item.quantity}
               </div>
               <div className="w-[19%] text-slate-600 text-right">
-                {formatCurrency(item.unitPrice)}
+                {formatCurrency(item.unitPrice, currency)}
               </div>
               <div className="w-[19%] text-slate-900 font-bold text-right">
-                {formatCurrency(item.amount)}
+                {formatCurrency(item.amount, currency)}
               </div>
             </div>
           ))}
@@ -223,7 +212,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                 <div className="flex justify-between text-slate-700">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-bold">
-                    {formatCurrency(invoice.subtotal)}
+                    {formatCurrency(invoice.subtotal, currency)}
                   </span>
                 </div>
 
@@ -233,7 +222,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                       Tax ({invoice.taxRate}%)
                     </span>
                     <span className="font-bold">
-                      {formatCurrency(invoice.taxAmount)}
+                      {formatCurrency(invoice.taxAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -242,7 +231,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                   <div className="flex justify-between text-slate-700">
                     <span className="font-medium">Discount</span>
                     <span className="text-red-600 font-bold">
-                      -{formatCurrency(invoice.discountAmount)}
+                      -{formatCurrency(invoice.discountAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -254,7 +243,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                     Grand Total
                   </span>
                   <span className="text-2xl font-bold text-slate-900">
-                    {formatCurrency(invoice.totalAmount)}
+                    {formatCurrency(invoice.totalAmount, currency)}
                   </span>
                 </div>
               </div>
@@ -266,7 +255,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                       Amount Due
                     </p>
                     <span className="text-3xl font-bold">
-                      {formatCurrency(invoice.balanceDue)}
+                      {formatCurrency(invoice.balanceDue, currency)}
                     </span>
                   </div>
                 </div>
@@ -322,7 +311,7 @@ export function PrestigePreview({ invoice }: InvoicePreviewProps) {
                         </span>
                       </td>
                       <td className="py-3 px-8 text-right font-bold text-slate-900 text-sm">
-                        {formatCurrency(m.amount)}
+                        {formatCurrency(m.amount, currency)}
                       </td>
                     </tr>
                   ))}

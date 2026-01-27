@@ -5,6 +5,18 @@ import { format } from "date-fns";
 import { Invoice } from "@/lib/types";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { InvoiceTableRowActions } from "./InvoiceTableRowActions";
+import { useSession } from "next-auth/react";
+import { formatCurrency } from "@/lib/utils";
+
+const AmountCell = ({ amount }: { amount: number }) => {
+  const { data: session } = useSession();
+  const currency = session?.user?.currency || "NGN";
+  return (
+    <div className="font-medium text-gray-900">
+      {formatCurrency(amount, currency)}
+    </div>
+  );
+};
 
 export const columns: ColumnDef<Invoice>[] = [
   {
@@ -47,7 +59,7 @@ export const columns: ColumnDef<Invoice>[] = [
   },
   {
     accessorKey: "dueDate",
-    header: () => <span className="hidden lg:inline">Due Date</span>, // Hide on Tablet/Mobile
+    header: () => <span className="hidden lg:inline">Due Date</span>,
     cell: ({ row }) => {
       const date = new Date(row.getValue("dueDate"));
       return (
@@ -60,18 +72,9 @@ export const columns: ColumnDef<Invoice>[] = [
   {
     accessorKey: "totalAmount",
     header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("totalAmount"));
-      const formatted = new Intl.NumberFormat("en-NG", {
-        style: "currency",
-        currency: "NGN",
-      }).format(amount);
-      return (
-        <div className="font-bold text-gray-900 text-right whitespace-nowrap">
-          {formatted}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <AmountCell amount={parseFloat(row.getValue("totalAmount"))} />
+    ),
   },
   {
     accessorKey: "status",

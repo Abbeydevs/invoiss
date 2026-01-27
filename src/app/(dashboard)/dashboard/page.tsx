@@ -27,9 +27,11 @@ import { getDashboardStats } from "@/lib/api/action";
 import { InvoiceStatusBadge } from "@/components/invoice/InvoiceStatusBadge";
 import Link from "next/link";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 export default function DashboardPage() {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
+  const currency = session?.user?.currency || "NGN";
   const router = useRouter();
 
   const { data: stats, isLoading } = useQuery({
@@ -52,31 +54,22 @@ export default function DashboardPage() {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <DashboardLayout
       title="Dashboard"
       subtitle="Overview of your business performance"
     >
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Stats Grid - Responsive: 1 col mobile, 2 col tablet, 4 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Total Revenue"
-            value={formatCurrency(stats?.totalRevenue || 0)}
+            value={formatCurrency(stats?.totalRevenue || 0, currency)}
             variant="primary"
             icon={<Wallet className="h-5 w-5" />}
           />
           <StatCard
             title="Pending Payments"
-            value={formatCurrency(stats?.totalPending || 0)}
+            value={formatCurrency(stats?.totalPending || 0, currency)}
             variant="warning"
             icon={<TrendingUp className="h-5 w-5" />}
           />
@@ -93,7 +86,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Recent Invoices */}
           <Card className="xl:col-span-2 border-0 shadow-lg overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 bg-white border-b border-gray-100">
               <div>
@@ -145,7 +137,7 @@ export default function DashboardPage() {
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 pl-2 shrink-0">
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-900">
-                            {formatCurrency(invoice.totalAmount)}
+                            {formatCurrency(invoice.totalAmount, currency)}
                           </p>
                           <p className="text-xs text-gray-500">
                             {format(new Date(invoice.invoiceDate), "MMM d")}
@@ -154,7 +146,6 @@ export default function DashboardPage() {
                         <div className="hidden sm:block">
                           <InvoiceStatusBadge status={invoice.status} />
                         </div>
-                        {/* Mobile Status Dot */}
                         <div
                           className={`sm:hidden h-2.5 w-2.5 rounded-full ${
                             invoice.status === "PAID"
@@ -172,7 +163,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
           <Card className="border-0 shadow-lg bg-linear-to-br from-[#1451cb] to-[#0ea5e9] text-white">
             <CardHeader>
               <CardTitle className="text-white">Quick Actions</CardTitle>

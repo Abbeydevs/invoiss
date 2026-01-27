@@ -3,23 +3,17 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency: string;
 }
 
-export function ModernPreview({ invoice }: InvoicePreviewProps) {
+export function ModernPreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
 
   return (
     <div
@@ -132,10 +126,10 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                 {item.quantity}
               </div>
               <div className="col-span-3 text-gray-600 text-right text-[10px]">
-                {formatCurrency(item.unitPrice)}
+                {formatCurrency(item.unitPrice, currency)}
               </div>
               <div className="col-span-3 text-gray-900 font-bold text-right text-[10px]">
-                {formatCurrency(item.amount)}
+                {formatCurrency(item.amount, currency)}
               </div>
             </div>
           ))}
@@ -174,7 +168,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
               <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-[10px]">
                 <span className="text-gray-600">Subtotal</span>
                 <span className="font-semibold text-gray-900">
-                  {formatCurrency(invoice.subtotal)}
+                  {formatCurrency(invoice.subtotal, currency)}
                 </span>
               </div>
               {(invoice.taxAmount ?? 0) > 0 && (
@@ -183,14 +177,14 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                     Tax ({invoice.taxRate}%)
                   </span>
                   <span className="font-semibold text-gray-900">
-                    {formatCurrency(invoice.taxAmount ?? 0)}
+                    {formatCurrency(invoice.taxAmount ?? 0, currency)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-1">
                 <span className="text-xs font-bold text-gray-900">Total</span>
                 <span className="text-sm font-bold text-gray-900">
-                  {formatCurrency(invoice.totalAmount)}
+                  {formatCurrency(invoice.totalAmount, currency)}
                 </span>
               </div>
 
@@ -200,7 +194,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                     Amount Due
                   </span>
                   <span className="text-sm font-bold">
-                    {formatCurrency(invoice.balanceDue)}
+                    {formatCurrency(invoice.balanceDue, currency)}
                   </span>
                 </div>
               </div>
@@ -228,7 +222,7 @@ export function ModernPreview({ invoice }: InvoicePreviewProps) {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-900">
-                        {formatCurrency(m.amount)}
+                        {formatCurrency(m.amount, currency)}
                       </p>
                       <span
                         className={`text-[8px] font-bold ${m.status === "PAID" ? "text-green-600" : "text-amber-600"}`}

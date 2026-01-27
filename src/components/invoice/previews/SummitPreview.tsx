@@ -3,29 +3,23 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency?: string;
 }
 
-export function SummitPreview({ invoice }: InvoicePreviewProps) {
+export function SummitPreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
       className="bg-white font-sans text-slate-900"
       style={{ minHeight: "297mm" }}
     >
-      {/* Minimalist Premium Header */}
       <div className="px-14 pt-14 pb-10">
         <div className="flex justify-between items-start mb-12">
           <div>
@@ -140,18 +134,16 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                 {item.quantity}
               </div>
               <div className="col-span-2 text-slate-600 text-right">
-                {formatCurrency(item.unitPrice)}
+                {formatCurrency(item.unitPrice, currency)}
               </div>
               <div className="col-span-2 text-slate-900 font-bold text-right">
-                {formatCurrency(item.amount)}
+                {formatCurrency(item.amount, currency)}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Summary Grid */}
         <div className="grid grid-cols-5 gap-12">
-          {/* Notes & Payment */}
           <div className="col-span-3 space-y-8">
             {bankAccount && (
               <div className="bg-linear-to-br from-indigo-50 to-purple-50 border border-indigo-100 p-6 rounded-xl">
@@ -200,7 +192,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                 <div className="flex justify-between text-sm text-slate-700">
                   <span>Subtotal</span>
                   <span className="font-semibold">
-                    {formatCurrency(invoice.subtotal)}
+                    {formatCurrency(invoice.subtotal, currency)}
                   </span>
                 </div>
 
@@ -208,7 +200,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                   <div className="flex justify-between text-sm text-slate-700">
                     <span>Tax ({invoice.taxRate}%)</span>
                     <span className="font-semibold">
-                      {formatCurrency(invoice.taxAmount)}
+                      {formatCurrency(invoice.taxAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -217,7 +209,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                   <div className="flex justify-between text-sm text-slate-700">
                     <span>Discount</span>
                     <span className="text-red-600 font-semibold">
-                      -{formatCurrency(invoice.discountAmount)}
+                      -{formatCurrency(invoice.discountAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -230,7 +222,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                   Total
                 </span>
                 <span className="text-2xl font-bold text-slate-900">
-                  {formatCurrency(invoice.totalAmount)}
+                  {formatCurrency(invoice.totalAmount, currency)}
                 </span>
               </div>
 
@@ -239,7 +231,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                   Balance Due
                 </p>
                 <p className="text-3xl font-bold">
-                  {formatCurrency(invoice.balanceDue)}
+                  {formatCurrency(invoice.balanceDue, currency)}
                 </p>
               </div>
             </div>
@@ -292,7 +284,7 @@ export function SummitPreview({ invoice }: InvoicePreviewProps) {
                           </span>
                         </td>
                         <td className="py-4 px-6 text-right font-bold text-slate-900 text-sm">
-                          {formatCurrency(m.amount)}
+                          {formatCurrency(m.amount, currency)}
                         </td>
                       </tr>
                     ))}

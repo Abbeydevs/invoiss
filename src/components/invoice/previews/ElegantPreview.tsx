@@ -3,29 +3,23 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency?: string;
 }
 
-export function ElegantPreview({ invoice }: InvoicePreviewProps) {
+export function ElegantPreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
       className="font-sans text-slate-900 bg-white"
       style={{ minHeight: "297mm" }}
     >
-      {/* Sophisticated Emerald Header */}
       <div className="relative bg-linear-to-br from-emerald-700 via-teal-600 to-emerald-800 px-14 py-12">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-32 -translate-x-32"></div>
@@ -69,9 +63,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="px-14 py-10">
-        {/* Bill To Card with Shadow */}
         <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-10 mb-10 -mt-8 relative z-10">
           <div className="grid grid-cols-3 gap-10">
             <div className="col-span-2">
@@ -116,7 +108,6 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
           </div>
         </div>
 
-        {/* Premium Items Table */}
         <div className="mb-10 rounded-2xl overflow-hidden shadow-xl border border-slate-200">
           <div className="bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white">
             <div className="flex px-10 py-6">
@@ -150,19 +141,17 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                   {item.quantity}
                 </div>
                 <div className="w-[19%] text-slate-600 text-right">
-                  {formatCurrency(item.unitPrice)}
+                  {formatCurrency(item.unitPrice, currency)}
                 </div>
                 <div className="w-[19%] text-emerald-700 font-bold text-right">
-                  {formatCurrency(item.amount)}
+                  {formatCurrency(item.amount, currency)}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Footer Section */}
         <div className="grid grid-cols-2 gap-10 mb-12">
-          {/* Notes & Payment */}
           <div className="space-y-6">
             {bankAccount && (
               <div className="bg-linear-to-br from-emerald-600 to-teal-700 text-white p-7 rounded-2xl shadow-xl">
@@ -208,14 +197,13 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
             )}
           </div>
 
-          {/* Totals */}
           <div>
             <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8">
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-slate-700">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-bold">
-                    {formatCurrency(invoice.subtotal)}
+                    {formatCurrency(invoice.subtotal, currency)}
                   </span>
                 </div>
 
@@ -225,7 +213,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                       Tax ({invoice.taxRate}%)
                     </span>
                     <span className="font-bold">
-                      {formatCurrency(invoice.taxAmount)}
+                      {formatCurrency(invoice.taxAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -234,7 +222,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                   <div className="flex justify-between text-slate-700">
                     <span className="font-medium">Discount</span>
                     <span className="text-red-600 font-bold">
-                      -{formatCurrency(invoice.discountAmount)}
+                      -{formatCurrency(invoice.discountAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -246,7 +234,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                     Total
                   </span>
                   <span className="text-3xl font-bold text-slate-900">
-                    {formatCurrency(invoice.totalAmount)}
+                    {formatCurrency(invoice.totalAmount, currency)}
                   </span>
                 </div>
               </div>
@@ -256,7 +244,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                   Balance Due
                 </p>
                 <p className="text-4xl font-bold">
-                  {formatCurrency(invoice.balanceDue)}
+                  {formatCurrency(invoice.balanceDue, currency)}
                 </p>
               </div>
             </div>
@@ -312,7 +300,7 @@ export function ElegantPreview({ invoice }: InvoicePreviewProps) {
                           </span>
                         </td>
                         <td className="py-4 px-10 text-right font-bold text-slate-900 text-sm">
-                          {formatCurrency(m.amount)}
+                          {formatCurrency(m.amount, currency)}
                         </td>
                       </tr>
                     ))}

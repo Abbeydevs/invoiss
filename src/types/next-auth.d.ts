@@ -8,6 +8,7 @@ declare module "next-auth" {
     planType: string;
     accountType: string;
     role: string;
+    currency: string;
   }
 
   interface Session {
@@ -18,6 +19,7 @@ declare module "next-auth" {
       planType: string;
       accountType: string;
       role: string;
+      currency: string;
     };
   }
 }
@@ -28,5 +30,6 @@ declare module "next-auth/jwt" {
     planType: string;
     accountType: string;
     role: string;
+    currency: string;
   }
 }

@@ -19,13 +19,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { InvoiceFormValues } from "@/lib/validators/invoice.schema";
 import { CurrencyInput } from "../ui/currency-input";
+import { useSession } from "next-auth/react";
 
 export function MilestoneManager() {
+  const { data: session } = useSession();
+  const currency = session?.user?.currency || "NGN";
+
   const { control, watch, setValue } = useFormContext<InvoiceFormValues>();
 
   const { fields, append, remove } = useFieldArray({
@@ -37,7 +41,7 @@ export function MilestoneManager() {
   const items = watch("items") || [];
   const subtotal = items.reduce(
     (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
-    0
+    0,
   );
 
   const taxRate = watch("taxRate") || 0;
@@ -57,7 +61,7 @@ export function MilestoneManager() {
   const milestones = watch("milestones") || [];
   const milestoneTotal = milestones.reduce(
     (sum, m) => sum + (m.amount || 0),
-    0
+    0,
   );
   const remaining = totalAmount - milestoneTotal;
 
@@ -91,15 +95,16 @@ export function MilestoneManager() {
                 ? "bg-blue-50 text-blue-800 border-blue-100"
                 : remaining < -1
                   ? "bg-red-50 text-red-800 border-red-100"
-                  : "bg-green-50 text-green-800 border-green-100"
+                  : "bg-green-50 text-green-800 border-green-100",
             )}
           >
             {remaining > 1 && (
               <>
                 <AlertCircle className="h-4 w-4" />
                 <span>
-                  <strong>Unassigned:</strong> ₦{remaining.toLocaleString()}{" "}
-                  needs to be added to milestones.
+                  <strong>Unassigned:</strong> ₦
+                  {formatCurrency(remaining, currency)} needs to be added to
+                  milestones.
                 </span>
               </>
             )}
@@ -107,8 +112,9 @@ export function MilestoneManager() {
               <>
                 <AlertCircle className="h-4 w-4" />
                 <span>
-                  <strong>Over Budget:</strong> You have exceeded the total by ₦
-                  {Math.abs(remaining).toLocaleString()}. Reduce amounts.
+                  <strong>Over Budget:</strong> You have exceeded the total by
+                  {formatCurrency(Math.abs(remaining), currency)}. Reduce
+                  amounts.
                 </span>
               </>
             )}
@@ -117,8 +123,8 @@ export function MilestoneManager() {
                 <AlertCircle className="h-4 w-4" />
                 <span>
                   {remaining > 0
-                    ? `Remaining amount to allocate: ₦${remaining.toLocaleString()}`
-                    : `You exceeded the total by ₦${Math.abs(remaining).toLocaleString()}`}
+                    ? `Remaining amount to allocate: ${formatCurrency(remaining, currency)}`
+                    : `You exceeded the total by ${formatCurrency(Math.abs(remaining), currency)}`}
                 </span>
               </div>
             )}
@@ -181,7 +187,7 @@ export function MilestoneManager() {
                                 variant={"outline"}
                                 className={cn(
                                   "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 {field.value ? (

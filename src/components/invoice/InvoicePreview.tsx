@@ -28,32 +28,30 @@ interface InvoicePreviewProps {
 export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const { data: session } = useSession();
   const isProUser = session?.user?.planType === "PRO";
+  const currency = session?.user?.currency || "NGN";
   const templateId = invoice.template?.id;
 
-  let TemplateComponent;
-  switch (templateId) {
-    case "custom":
-      TemplateComponent = <BlankPreview invoice={invoice} />;
-      break;
-    case "modern":
-      TemplateComponent = <ModernPreview invoice={invoice} />;
-      break;
-    case "elegant":
-      TemplateComponent = <ElegantPreview invoice={invoice} />;
-      break;
-    case "executive":
-      TemplateComponent = <ExecutivePreview invoice={invoice} />;
-      break;
-    case "prestige":
-      TemplateComponent = <PrestigePreview invoice={invoice} />;
-      break;
-    case "summit":
-      TemplateComponent = <SummitPreview invoice={invoice} />;
-      break;
-    case "classic":
-    default:
-      TemplateComponent = <ClassicPreview invoice={invoice} />;
-  }
+  const renderTemplate = () => {
+    const props = { invoice, currency };
+
+    switch (templateId) {
+      case "custom":
+        return <BlankPreview {...props} />;
+      case "modern":
+        return <ModernPreview {...props} />;
+      case "elegant":
+        return <ElegantPreview {...props} />;
+      case "executive":
+        return <ExecutivePreview {...props} />;
+      case "prestige":
+        return <PrestigePreview {...props} />;
+      case "summit":
+        return <SummitPreview {...props} />;
+      case "classic":
+      default:
+        return <ClassicPreview {...props} />;
+    }
+  };
 
   return (
     <Card
@@ -62,7 +60,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
     >
       <Watermark isProUser={isProUser} />
 
-      {TemplateComponent}
+      {renderTemplate()}
     </Card>
   );
 }

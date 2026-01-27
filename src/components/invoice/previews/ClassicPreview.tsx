@@ -3,22 +3,17 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency: string;
 }
 
-export function ClassicPreview({ invoice }: InvoicePreviewProps) {
+export function ClassicPreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
@@ -130,10 +125,10 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
               {item.quantity}
             </div>
             <div className="w-[17.5%] text-slate-600 text-right">
-              {formatCurrency(item.unitPrice)}
+              {formatCurrency(item.unitPrice, currency)}
             </div>
             <div className="w-[17.5%] text-slate-900 font-bold text-right">
-              {formatCurrency(item.amount)}
+              {formatCurrency(item.amount, currency)}
             </div>
           </div>
         ))}
@@ -180,7 +175,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
             <div className="flex justify-between text-slate-700">
               <span className="font-medium">Subtotal</span>
               <span className="font-semibold">
-                {formatCurrency(invoice.subtotal)}
+                {formatCurrency(invoice.subtotal, currency)}
               </span>
             </div>
 
@@ -188,7 +183,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
               <div className="flex justify-between text-slate-700">
                 <span className="font-medium">Tax ({invoice.taxRate}%)</span>
                 <span className="font-semibold">
-                  {formatCurrency(invoice.taxAmount)}
+                  {formatCurrency(invoice.taxAmount, currency)}
                 </span>
               </div>
             )}
@@ -197,7 +192,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
               <div className="flex justify-between text-slate-700">
                 <span className="font-medium">Discount</span>
                 <span className="text-red-600 font-semibold">
-                  -{formatCurrency(invoice.discountAmount)}
+                  -{formatCurrency(invoice.discountAmount, currency)}
                 </span>
               </div>
             )}
@@ -207,7 +202,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
             <div className="flex justify-between items-center">
               <span className="text-xl font-bold text-slate-900">Total</span>
               <span className="text-2xl font-bold text-slate-900">
-                {formatCurrency(invoice.totalAmount)}
+                {formatCurrency(invoice.totalAmount, currency)}
               </span>
             </div>
 
@@ -215,7 +210,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold">Amount Due</span>
                 <span className="text-2xl font-bold">
-                  {formatCurrency(invoice.balanceDue)}
+                  {formatCurrency(invoice.balanceDue, currency)}
                 </span>
               </div>
             </div>
@@ -269,7 +264,7 @@ export function ClassicPreview({ invoice }: InvoicePreviewProps) {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right font-bold text-slate-900 text-sm">
-                        {formatCurrency(m.amount)}
+                        {formatCurrency(m.amount, currency)}
                       </td>
                     </tr>
                   ))}

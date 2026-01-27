@@ -16,6 +16,7 @@ import {
 import { TrendingUp, Users, FileText, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 const getAnalytics = async () => {
   const res = await fetch("/api/analytics");
@@ -24,6 +25,9 @@ const getAnalytics = async () => {
 };
 
 export default function AnalyticsPage() {
+  const { data: session } = useSession();
+  const currency = session?.user?.currency || "NGN";
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["analytics"],
     queryFn: getAnalytics,
@@ -52,6 +56,16 @@ export default function AnalyticsPage() {
     recentInvoices,
   } = data;
 
+  const formatCompactNumber = (value: number) => {
+    const locale = currency === "NGN" ? "en-NG" : "en-US";
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency,
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  };
+
   return (
     <DashboardLayout
       title="Analytics"
@@ -61,14 +75,14 @@ export default function AnalyticsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Revenue"
-            value={formatCurrency(totalRevenue || 0)}
+            value={formatCurrency(totalRevenue || 0, currency)}
             description="Total amount collected"
             icon={TrendingUp}
             className="border-l-4 border-l-emerald-500"
           />
           <StatsCard
             title="Outstanding"
-            value={formatCurrency(totalPending || 0)}
+            value={formatCurrency(totalPending || 0, currency)}
             description="Pending payments"
             icon={AlertCircle}
             className="border-l-4 border-l-amber-500"
@@ -111,11 +125,11 @@ export default function AnalyticsPage() {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => `₦${value / 1000}k`}
+                      tickFormatter={formatCompactNumber}
                     />
                     <Tooltip
                       formatter={(value: number | undefined) => [
-                        formatCurrency(value || 0),
+                        formatCurrency(value || 0, currency),
                         "Revenue",
                       ]}
                       cursor={{ fill: "transparent" }}
@@ -159,7 +173,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold">
-                        {formatCurrency(invoice.totalAmount)}
+                        {formatCurrency(invoice.totalAmount, currency)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(invoice.createdAt), "MMM d")}

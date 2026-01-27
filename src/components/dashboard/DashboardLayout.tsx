@@ -5,6 +5,7 @@ import { DashboardHeader } from "./DashboardHeader";
 import { GlobalAlert } from "./GlobalAlert";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
 import { cn } from "@/lib/utils";
+import { CurrencyFloatingButton } from "../common/CurrencyFloatingButton";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -55,6 +56,8 @@ function DashboardLayoutContent({
             {children}
           </div>
         </main>
+
+        <CurrencyFloatingButton />
       </div>
     </div>
   );

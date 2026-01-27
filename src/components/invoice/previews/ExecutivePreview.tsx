@@ -3,29 +3,23 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency: string;
 }
 
-export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
+export function ExecutivePreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
       className="bg-white font-serif text-gray-900"
       style={{ minHeight: "297mm" }}
     >
-      {/* Sophisticated Header with Gold Accent */}
       <div className="relative bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 px-12 pt-12 pb-20">
         <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-amber-400 via-yellow-500 to-amber-400"></div>
 
@@ -70,9 +64,7 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="px-12 -mt-12">
-        {/* Bill To Card */}
         <div className="bg-white rounded-lg shadow-2xl border border-slate-200 p-8 mb-8">
           <div className="grid grid-cols-3 gap-8">
             <div className="col-span-2">
@@ -117,7 +109,6 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
           </div>
         </div>
 
-        {/* Items Table */}
         <div className="mb-8 rounded-lg overflow-hidden shadow-xl border border-slate-200">
           <div className="bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
             <div className="flex px-8 py-5">
@@ -151,19 +142,17 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
                   {item.quantity}
                 </div>
                 <div className="w-[17.5%] text-slate-600 text-right font-sans">
-                  {formatCurrency(item.unitPrice)}
+                  {formatCurrency(item.unitPrice, currency)}
                 </div>
                 <div className="w-[17.5%] text-slate-900 font-bold text-right font-sans">
-                  {formatCurrency(item.amount)}
+                  {formatCurrency(item.amount, currency)}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Footer Area */}
         <div className="grid grid-cols-2 gap-10 mb-12">
-          {/* Left Column - Notes & Payment */}
           <div className="space-y-5">
             {bankAccount && (
               <div className="bg-slate-900 text-white p-6 rounded-lg">
@@ -194,14 +183,13 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
             )}
           </div>
 
-          {/* Right Column - Totals */}
           <div>
             <div className="bg-white rounded-lg shadow-xl border border-slate-200 p-8">
               <div className="space-y-4">
                 <div className="flex justify-between text-slate-700 font-sans">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-semibold">
-                    {formatCurrency(invoice.subtotal)}
+                    {formatCurrency(invoice.subtotal, currency)}
                   </span>
                 </div>
 
@@ -211,7 +199,7 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
                       Tax ({invoice.taxRate}%)
                     </span>
                     <span className="font-semibold">
-                      {formatCurrency(invoice.taxAmount)}
+                      {formatCurrency(invoice.taxAmount, currency)}
                     </span>
                   </div>
                 )}
@@ -231,7 +219,7 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
                       Total
                     </span>
                     <span className="text-2xl font-bold text-slate-900">
-                      {formatCurrency(invoice.totalAmount)}
+                      {formatCurrency(invoice.totalAmount, currency)}
                     </span>
                   </div>
                 </div>
@@ -244,7 +232,7 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
                       Balance Due
                     </p>
                     <span className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-amber-200 via-yellow-300 to-amber-200">
-                      {formatCurrency(invoice.balanceDue)}
+                      {formatCurrency(invoice.balanceDue, currency)}
                     </span>
                   </div>
                 </div>
@@ -300,7 +288,7 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
                         </span>
                       </td>
                       <td className="py-3 px-6 text-right font-bold text-slate-900 text-sm">
-                        {formatCurrency(m.amount)}
+                        {formatCurrency(m.amount, currency)}
                       </td>
                     </tr>
                   ))}
@@ -309,7 +297,6 @@ export function ExecutivePreview({ invoice }: InvoicePreviewProps) {
             </div>
           )}
 
-        {/* Footer */}
         <div className="text-center pb-12 pt-8 border-t border-slate-200">
           <p className="text-slate-600 text-sm font-medium mb-2">
             Thank you for your business

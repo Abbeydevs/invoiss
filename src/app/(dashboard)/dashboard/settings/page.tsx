@@ -36,6 +36,7 @@ import { ImageUpload } from "@/components/common/ImageUpload";
 import { BillingModal } from "@/components/billing/BillingModal";
 import { Profile } from "@/lib/types";
 import { format, differenceInDays } from "date-fns";
+import { CurrencyForm } from "@/components/settings/CurrencyForm";
 
 async function getProfile(): Promise<Profile> {
   const response = await fetch("/api/profile");
@@ -371,6 +372,8 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        <CurrencyForm />
       </div>
 
       <BillingModal

@@ -3,22 +3,17 @@
 import { InvoiceDetail } from "@/lib/types";
 import Image from "next/image";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoicePreviewProps {
   invoice: InvoiceDetail;
+  currency: string;
 }
 
-export function BlankPreview({ invoice }: InvoicePreviewProps) {
+export function BlankPreview({ invoice, currency }: InvoicePreviewProps) {
   const profile = invoice.profile;
   const customer = invoice.customer;
   const bankAccount = invoice.bankAccount;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
 
   return (
     <div
@@ -114,10 +109,10 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
                   {item.quantity}
                 </td>
                 <td className="border border-black p-2 text-sm">
-                  {formatCurrency(item.unitPrice)}
+                  {formatCurrency(item.unitPrice, currency)}
                 </td>
                 <td className="border border-black p-2 text-sm">
-                  {formatCurrency(item.amount)}
+                  {formatCurrency(item.amount, currency)}
                 </td>
               </tr>
             ))}
@@ -129,7 +124,7 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
         <div className="flex justify-between mb-1">
           <p className="text-sm text-black">Subtotal:</p>
           <p className="text-sm text-black">
-            {formatCurrency(invoice.subtotal)}
+            {formatCurrency(invoice.subtotal, currency)}
           </p>
         </div>
 
@@ -137,7 +132,7 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
           <div className="flex justify-between mb-1">
             <p className="text-sm text-black">Tax ({invoice.taxRate}%):</p>
             <p className="text-sm text-black">
-              {formatCurrency(invoice.taxAmount)}
+              {formatCurrency(invoice.taxAmount, currency)}
             </p>
           </div>
         )}
@@ -146,7 +141,7 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
           <div className="flex justify-between mb-1">
             <p className="text-sm text-black">Discount:</p>
             <p className="text-sm text-black">
-              -{formatCurrency(invoice.discountAmount)}
+              -{formatCurrency(invoice.discountAmount, currency)}
             </p>
           </div>
         )}
@@ -154,14 +149,14 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
         <div className="flex justify-between mb-1 pt-2 border-t border-black">
           <p className="text-sm font-normal text-black">Total:</p>
           <p className="text-sm font-normal text-black">
-            {formatCurrency(invoice.totalAmount)}
+            {formatCurrency(invoice.totalAmount, currency)}
           </p>
         </div>
 
         <div className="flex justify-between mb-1">
           <p className="text-sm font-normal text-black">Amount Due:</p>
           <p className="text-sm font-normal text-black">
-            {formatCurrency(invoice.balanceDue)}
+            {formatCurrency(invoice.balanceDue, currency)}
           </p>
         </div>
       </div>
@@ -215,7 +210,7 @@ export function BlankPreview({ invoice }: InvoicePreviewProps) {
                       {format(new Date(m.dueDate), "MMMM d, yyyy")}
                     </td>
                     <td className="border border-black p-2 text-sm">
-                      {formatCurrency(m.amount)}
+                      {formatCurrency(m.amount, currency)}
                     </td>
                     <td className="border border-black p-2 text-sm">
                       {m.status}

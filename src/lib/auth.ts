@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           try {
             const decoded = verify(
               credentials.impersonationToken,
-              process.env.NEXTAUTH_SECRET!
+              process.env.NEXTAUTH_SECRET!,
             ) as { email: string; isImpersonation: boolean };
 
             if (decoded.email && decoded.isImpersonation) {
@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
                   planType: user.planType,
                   accountType: user.accountType,
                   role: user.role,
+                  currency: user.currency,
                 };
               }
             }
@@ -75,19 +76,19 @@ export const authOptions: NextAuthOptions = {
 
         if (settings?.maintenanceMode && user.role !== "ADMIN") {
           throw new Error(
-            "System is under maintenance. Please try again later."
+            "System is under maintenance. Please try again later.",
           );
         }
 
         if (user.isBanned) {
           throw new Error(
-            "Your account has been suspended. Please contact support."
+            "Your account has been suspended. Please contact support.",
           );
         }
 
         const isPasswordValid = await compare(
           credentials.password,
-          user.password
+          user.password,
         );
 
         if (!isPasswordValid) {
@@ -101,17 +102,23 @@ export const authOptions: NextAuthOptions = {
           planType: user.planType,
           accountType: user.accountType,
           role: user.role,
+          currency: user.currency,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.planType = user.planType;
         token.accountType = user.accountType;
         token.role = user.role;
+        token.currency = user.currency;
+      }
+
+      if (trigger === "update" && session?.currency) {
+        token.currency = session.currency;
       }
 
       if (trigger === "update") {
@@ -126,12 +133,13 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, user, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.planType = token.planType as string;
         session.user.accountType = token.accountType as string;
         session.user.role = token.role as string;
+        session.user.currency = user?.currency || token?.currency || "NGN";
       }
       return session;
     },

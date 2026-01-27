@@ -13,9 +13,11 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { UpgradeModal } from "@/components/billing/UpgradeModal";
 import { WalletTransaction } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
 
 export default function WalletPage() {
   const { data: session, status } = useSession();
+  const currency = session?.user?.currency || "NGN";
   const isProUser = session?.user?.planType === "PRO";
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -32,14 +34,6 @@ export default function WalletPage() {
       </DashboardLayout>
     );
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const displayWallet = isProUser
     ? wallet
@@ -111,19 +105,22 @@ export default function WalletPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <StatCard
               title="Available Balance"
-              value={formatCurrency(displayWallet?.balance || 0)}
+              value={formatCurrency(displayWallet?.balance || 0, currency)}
               variant="primary"
               icon={<Wallet className="h-5 w-5" />}
             />
             <StatCard
               title="Total Received"
-              value={formatCurrency(displayWallet?.totalReceived || 0)}
+              value={formatCurrency(
+                displayWallet?.totalReceived || 0,
+                currency,
+              )}
               variant="success"
               icon={<ArrowDownLeft className="h-5 w-5" />}
             />
             <StatCard
               title="Pending Invoices"
-              value={formatCurrency(displayWallet?.totalPending || 0)}
+              value={formatCurrency(displayWallet?.totalPending || 0, currency)}
               variant="warning"
               icon={<ArrowUpRight className="h-5 w-5" />}
             />
@@ -160,7 +157,7 @@ export default function WalletPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          +{formatCurrency(tx.amount)}
+                          +{formatCurrency(tx.amount, currency)}
                         </p>
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                           Credit

@@ -76,6 +76,7 @@ interface InvoiceEditorFormProps {
 
 export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
   const { data: session } = useSession();
+  const currency = session?.user?.currency || "NGN";
   const queryClient = useQueryClient();
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerComboboxOpen, setCustomerComboboxOpen] = useState(false);
@@ -99,6 +100,20 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
     control: form.control,
     name: "items",
   });
+
+  const getCurrencySymbol = (code: string) => {
+    try {
+      return (
+        new Intl.NumberFormat("en-US", { style: "currency", currency: code })
+          .formatToParts(0)
+          .find((part) => part.type === "currency")?.value || code
+      );
+    } catch {
+      return code;
+    }
+  };
+
+  const currencySymbol = getCurrencySymbol(currency);
 
   const customerMutation = useMutation({
     mutationFn: createCustomer,
@@ -609,7 +624,7 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PERCENTAGE">%</SelectItem>
-                        <SelectItem value="FIXED">₦</SelectItem>
+                        <SelectItem value="FIXED">{currencySymbol}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
