@@ -6,6 +6,12 @@ export type BankAccount = {
   accountNumber: string;
   accountName: string;
   isDefault: boolean;
+  isManual: boolean;
+  currency: string;
+  swiftCode?: string | null;
+  iban?: string | null;
+  routingNumber?: string | null;
+  sortCode?: string | null;
 };
 
 export type Customer = {

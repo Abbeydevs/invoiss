@@ -3,16 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-
-const bankAccountSchema = z.object({
-  bankName: z.string().min(2, "Bank name is required"),
-  accountNumber: z
-    .string()
-    .min(10, "Account number must be 10 digits")
-    .max(10, "Account number must be 10 digits"),
-  accountName: z.string().min(2, "Account name is required"),
-  isDefault: z.boolean().default(false).optional(),
-});
+import { bankAccountSchema } from "@/lib/validators/bank-account.schema";
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +27,7 @@ export async function POST(request: Request) {
             error:
               "Basic plan allows only 1 bank account. Upgrade to Pro for unlimited accounts.",
           },
-          { status: 403 }
+          { status: 403 },
         );
       }
     }
@@ -55,6 +46,12 @@ export async function POST(request: Request) {
         accountNumber: validatedData.accountNumber,
         accountName: validatedData.accountName,
         isDefault: validatedData.isDefault,
+        isManual: validatedData.isManual,
+        currency: validatedData.currency,
+        swiftCode: validatedData.swiftCode,
+        iban: validatedData.iban,
+        routingNumber: validatedData.routingNumber,
+        sortCode: validatedData.sortCode,
       },
     });
 
@@ -64,7 +61,7 @@ export async function POST(request: Request) {
         message: "Bank account added successfully",
         account: newAccount,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Create bank account error:", error);
@@ -72,13 +69,13 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to add bank account" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -105,7 +102,7 @@ export async function GET() {
     console.error("Get bank accounts error:", error);
     return NextResponse.json(
       { error: "Failed to fetch bank accounts" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
