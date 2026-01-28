@@ -108,18 +108,26 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     const originalElement = document.getElementById("invoice-preview-capture");
     if (!originalElement) throw new Error("Preview not found");
 
+    const scrollHeight = originalElement.scrollHeight;
+    const scrollWidth = originalElement.scrollWidth;
+
     const ghostContainer = document.createElement("div");
     ghostContainer.style.position = "absolute";
     ghostContainer.style.top = "-9999px";
     ghostContainer.style.left = "0";
-    ghostContainer.style.width = "800px";
+    ghostContainer.style.width = `${scrollWidth}px`;
+    ghostContainer.style.height = `${scrollHeight}px`;
     document.body.appendChild(ghostContainer);
 
     const clonedElement = originalElement.cloneNode(true) as HTMLElement;
     clonedElement.style.margin = "0";
     clonedElement.style.padding = "0";
-    clonedElement.style.width = "800px";
-    clonedElement.style.minHeight = "auto";
+    clonedElement.style.width = "100%";
+    clonedElement.style.height = "100%";
+    clonedElement.style.overflow = "visible";
+    clonedElement.style.maxHeight = "none";
+    clonedElement.style.boxShadow = "none";
+    clonedElement.style.border = "none";
     ghostContainer.appendChild(clonedElement);
 
     try {
@@ -127,19 +135,22 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
-        width: 800,
+        width: scrollWidth,
+        height: scrollHeight,
       });
+
+      const a4WidthMm = 210;
+      const imgHeightMm = (scrollHeight * a4WidthMm) / scrollWidth;
+
+      const pdfHeightMm = Math.max(imgHeightMm, 297);
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: "a4",
+        format: [a4WidthMm, pdfHeightMm],
       });
 
-      const pdfWidth = 210;
-      const pdfHeight = (clonedElement.scrollHeight * pdfWidth) / 800;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "PNG", 0, 0, a4WidthMm, imgHeightMm);
 
       return pdf.output("blob");
     } finally {
