@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Loader2, Banknote } from "lucide-react";
+import { Loader2, Currency } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,7 +59,6 @@ export function CurrencyFloatingButton() {
     }
   };
 
-  // Don't show if session isn't loaded yet
   if (!session) return null;
 
   return (
@@ -67,9 +66,9 @@ export function CurrencyFloatingButton() {
       <DialogTrigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-xl bg-[#1451cb] hover:bg-[#1451cb]/90 text-white z-50 transition-transform hover:scale-105"
+          className="fixed bottom-20 right-3 h-12 w-12 rounded-full shadow-xl bg-[#1451cb] hover:bg-[#1451cb]/90 text-white z-50 transition-transform hover:scale-105"
         >
-          <Banknote className="h-6 w-6" />
+          <Currency className="h-10 w-10" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
