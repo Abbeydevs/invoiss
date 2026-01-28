@@ -72,3 +72,44 @@ export const SubscriptionDowngradedEmail = ({
     </a>
   </div>
 );
+
+export const TrialExpiredEmail = ({
+  userName,
+  billingUrl,
+}: {
+  userName: string;
+  billingUrl: string;
+}) => (
+  <div style={{ fontFamily: "sans-serif", padding: "20px" }}>
+    <h1>Your Free Trial has Ended</h1>
+    <p>Hi {userName},</p>
+    <p>
+      Your 7-day free trial of Invoiss Pro has come to an end. We hope you
+      enjoyed exploring all the premium features!
+    </p>
+    <p>
+      Your account has been moved to the <strong>Basic Plan</strong>. To
+      continue enjoying unlimited invoices, bank accounts, and email sending,
+      upgrade to Pro today.
+    </p>
+
+    <a
+      href={billingUrl}
+      style={{
+        display: "inline-block",
+        backgroundColor: "#1451cb",
+        color: "white",
+        padding: "12px 24px",
+        borderRadius: "6px",
+        textDecoration: "none",
+        marginTop: "16px",
+      }}
+    >
+      Upgrade to Pro
+    </a>
+    <p style={{ marginTop: "24px", color: "#666", fontSize: "14px" }}>
+      Don&apos;t want to upgrade? No problem! You can continue using Invoiss
+      with the Basic plan features.
+    </p>
+  </div>
+);

@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/mail";
 import {
   PaymentFailedEmail,
   SubscriptionDowngradedEmail,
+  TrialExpiredEmail,
 } from "@/components/email/SubscriptionEmails";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +19,45 @@ export async function GET(request: NextRequest) {
 
   try {
     const today = new Date();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://invoiss.com";
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://invoiss.thesoftwarehub.tech";
 
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    const expiredTrialUsers = await prisma.user.findMany({
+      where: {
+        planType: "PRO",
+        trialEndsAt: {
+          lt: today,
+        },
+        subscriptionEndsAt: null,
+      },
+      include: { profile: true },
+    });
+
+    console.log(
+      `Found ${expiredTrialUsers.length} users with expired trials to downgrade.`,
+    );
+
+    for (const user of expiredTrialUsers) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          planType: "BASIC",
+          trialEndsAt: null,
+        },
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: "Your Free Trial has Ended",
+        react: TrialExpiredEmail({
+          userName: user.profile?.firstName || "User",
+          billingUrl: `${appUrl}/dashboard/settings`,
+        }),
+      });
+    }
 
     const usersToDowngrade = await prisma.user.findMany({
       where: {
@@ -34,7 +70,7 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(
-      `Checking Subscriptions: Found ${usersToDowngrade.length} users to downgrade.`
+      `Checking Subscriptions: Found ${usersToDowngrade.length} users to downgrade.`,
     );
 
     for (const user of usersToDowngrade) {
@@ -96,7 +132,7 @@ export async function GET(request: NextRequest) {
     console.error("Cron Job Error:", error);
     return NextResponse.json(
       { error: "Failed to process subscriptions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

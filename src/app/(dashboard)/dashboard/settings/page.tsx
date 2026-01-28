@@ -8,7 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Crown, CheckCircle2, Building2, X } from "lucide-react";
+import {
+  Loader2,
+  Crown,
+  CheckCircle2,
+  Building2,
+  X,
+  AlertCircle,
+} from "lucide-react";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import {
@@ -30,6 +37,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { FormSkeleton } from "@/components/common/SkeletonLoader";
 import { ImageUpload } from "@/components/common/ImageUpload";
@@ -122,16 +130,64 @@ export default function SettingsPage() {
       ? new Date(profileData.trialEndsAt)
       : null;
 
+  // User is in grace period if they're PRO with expired paid subscription
   const isGracePeriod = isPro && subscriptionEnd && subscriptionEnd < today;
-  const isTrial = !isGracePeriod && trialEnd && trialEnd > today;
+
+  // User is on trial if they're PRO, have a trial end date in the future, and no paid subscription
+  const isTrial = isPro && trialEnd && trialEnd > today && !subscriptionEnd;
+
+  // User's trial has expired but they haven't been downgraded yet (edge case before cron runs)
+  const isExpiredTrial =
+    isPro && trialEnd && trialEnd < today && !subscriptionEnd;
 
   const daysRemaining = subscriptionEnd
     ? differenceInDays(subscriptionEnd, today)
-    : 0;
+    : trialEnd && isTrial
+      ? differenceInDays(trialEnd, today)
+      : 0;
+
+  // Determine the display date based on subscription status
+  const displayDate = subscriptionEnd || trialEnd;
+
+  // Determine the status text
+  const getStatusText = () => {
+    if (isExpiredTrial) return "Trial expired";
+    if (isGracePeriod) return "Subscription expired";
+    if (isTrial) return "Trial ends";
+    if (subscriptionEnd && subscriptionEnd > today) return "Renews on";
+    return null;
+  };
 
   return (
     <DashboardLayout title="Settings" subtitle="Manage your account settings">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Expired Trial Warning */}
+        {isExpiredTrial && (
+          <Alert variant="destructive" className="border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Your free trial has ended. Subscribe now to continue using Pro
+              features. Your account will be downgraded to Basic soon.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Grace Period Warning */}
+        {isGracePeriod && (
+          <Alert
+            variant="destructive"
+            className="border-orange-200 bg-orange-50"
+          >
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              Your subscription has expired. You have{" "}
+              {3 - Math.abs(daysRemaining)} day
+              {3 - Math.abs(daysRemaining) !== 1 ? "s" : ""} remaining in your
+              grace period before your account is downgraded to Basic.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Subscription Card */}
         <Card className="border border-gray-200">
           <CardHeader>
@@ -154,7 +210,9 @@ export default function SettingsPage() {
                   </CardTitle>
                   <CardDescription>
                     {isPro
-                      ? "Access to all premium features"
+                      ? isTrial
+                        ? "Free trial - enjoying all premium features"
+                        : "Access to all premium features"
                       : "Upgrade to unlock premium features"}
                   </CardDescription>
                 </div>
@@ -162,11 +220,13 @@ export default function SettingsPage() {
               <Badge
                 className={`${
                   isPro
-                    ? "bg-linear-to-r from-blue-500 to-purple-600"
+                    ? isTrial
+                      ? "bg-linear-to-r from-green-500 to-emerald-600"
+                      : "bg-linear-to-r from-blue-500 to-purple-600"
                     : "bg-gray-500"
                 } text-white`}
               >
-                {isPro ? "PRO" : "BASIC"}
+                {isTrial ? "TRIAL" : isPro ? "PRO" : "BASIC"}
               </Badge>
             </div>
           </CardHeader>
@@ -209,31 +269,29 @@ export default function SettingsPage() {
 
               {/* Action Area */}
               <div className="flex items-center justify-between pt-4 border-t">
-                {isPro && subscriptionEnd ? (
+                {isPro && displayDate ? (
                   <div className="flex items-center gap-6">
                     <div>
-                      <p className="text-sm text-gray-500">
-                        {isGracePeriod
-                          ? "Subscription expired"
-                          : isTrial
-                            ? "Trial ends"
-                            : "Renews on"}
-                      </p>
+                      <p className="text-sm text-gray-500">{getStatusText()}</p>
                       <p className="text-base font-semibold text-gray-900">
-                        {format(subscriptionEnd, "MMM d, yyyy")}
+                        {format(displayDate, "MMM d, yyyy")}
                       </p>
-                      {!isGracePeriod && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {Math.abs(daysRemaining)} day
-                          {Math.abs(daysRemaining) !== 1 ? "s" : ""} remaining
-                        </p>
-                      )}
+                      {!isGracePeriod &&
+                        !isExpiredTrial &&
+                        daysRemaining > 0 && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {daysRemaining} day
+                            {daysRemaining !== 1 ? "s" : ""} remaining
+                          </p>
+                        )}
                     </div>
-                    {profileData?.billingCycle && !isTrial && (
-                      <Badge variant="outline" className="capitalize">
-                        {profileData.billingCycle.toLowerCase()}
-                      </Badge>
-                    )}
+                    {profileData?.billingCycle &&
+                      !isTrial &&
+                      !isExpiredTrial && (
+                        <Badge variant="outline" className="capitalize">
+                          {profileData.billingCycle.toLowerCase()}
+                        </Badge>
+                      )}
                   </div>
                 ) : (
                   <div>
@@ -243,7 +301,7 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {(!isPro || isGracePeriod || isTrial) && (
+                {(!isPro || isGracePeriod || isTrial || isExpiredTrial) && (
                   <Button
                     onClick={() => setShowBillingModal(true)}
                     className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -251,8 +309,8 @@ export default function SettingsPage() {
                     <Crown className="h-4 w-4 mr-2" />
                     {isGracePeriod
                       ? "Renew Now"
-                      : isTrial
-                        ? "Subscribe"
+                      : isTrial || isExpiredTrial
+                        ? "Subscribe Now"
                         : "Upgrade to Pro"}
                   </Button>
                 )}
