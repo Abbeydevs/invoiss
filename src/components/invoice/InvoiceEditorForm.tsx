@@ -431,8 +431,9 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                     Bank Account *
                   </FormLabel>
                   <Select
+                    key={field.value}
                     onValueChange={field.onChange}
-                    value={field.value}
+                    value={field.value || ""}
                     disabled={isLoadingBanks}
                   >
                     <FormControl>
@@ -676,8 +677,9 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
                 <FormItem>
                   <FormLabel className="text-xs lg:text-sm">Template</FormLabel>
                   <Select
+                    key={field.value}
                     onValueChange={field.onChange}
-                    value={field.value}
+                    value={field.value || ""}
                     disabled={isLoadingTemplates}
                   >
                     <FormControl>

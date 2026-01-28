@@ -7,7 +7,7 @@ import z from "zod";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -58,16 +58,20 @@ export async function GET(
     console.error("Get invoice detail error:", error);
     return NextResponse.json(
       { error: "Failed to fetch invoice" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    console.log("DEBUG: Importing Schema...");
+    console.log("Type of Schema:", typeof updateInvoiceApiSchema);
+    console.log("Is Schema Defined?", !!updateInvoiceApiSchema);
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -93,7 +97,7 @@ export async function PATCH(
     if (existingInvoice.status !== "DRAFT") {
       return NextResponse.json(
         { error: "Only DRAFT invoices can be edited." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -161,19 +165,19 @@ export async function PATCH(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
       { error: "Failed to update invoice" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -202,7 +206,7 @@ export async function DELETE(
     if (invoice.status !== "DRAFT") {
       return NextResponse.json(
         { error: "Only DRAFT invoices can be deleted." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -220,7 +224,7 @@ export async function DELETE(
     console.error("Delete invoice error:", error);
     return NextResponse.json(
       { error: "Failed to delete invoice" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

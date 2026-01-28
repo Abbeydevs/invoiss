@@ -1,5 +1,3 @@
-"use client";
-
 import { z } from "zod";
 
 export const invoiceItemSchema = z.object({
@@ -11,7 +9,7 @@ export const invoiceItemSchema = z.object({
 export const milestoneSchema = z.object({
   name: z.string().min(1, "Milestone name is required"),
   amount: z.number().min(0, "Amount must be positive"),
-  percentage: z.number().optional(),
+  percentage: z.number().optional().nullable(),
   dueDate: z.date(),
 });
 
@@ -33,16 +31,12 @@ export const invoiceSchema = z.object({
   templateId: z.string().min(1, "A template is required"),
   hasPaymentSchedule: z.boolean().optional(),
   milestones: z.array(milestoneSchema).optional(),
-  // Calculated totals (kept optional for client-side form state)
   subtotal: z.number().optional(),
   taxAmount: z.number().optional(),
   discountAmount: z.number().optional(),
   totalAmount: z.number().optional(),
   balanceDue: z.number().optional(),
 });
-
-export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
-export type PaymentMilestoneValues = z.infer<typeof milestoneSchema>;
 
 export const invoiceApiSchema = invoiceSchema.extend({
   invoiceDate: z.coerce.date(),
@@ -52,18 +46,25 @@ export const invoiceApiSchema = invoiceSchema.extend({
       z.object({
         name: z.string(),
         amount: z.number(),
-        percentage: z.number().optional(),
+        percentage: z.number().optional().nullable(),
         dueDate: z.coerce.date(),
-      })
+      }),
     )
     .optional(),
-
-  subtotal: z.number().optional(),
-  taxAmount: z.number().optional(),
-  discountAmount: z.number().optional(),
-  totalAmount: z.number().optional(),
-  balanceDue: z.number().optional(),
-  status: z.enum(["DRAFT", "SENT"]).optional(),
+  status: z
+    .enum([
+      "DRAFT",
+      "SENT",
+      "PAID",
+      "OVERDUE",
+      "CANCELLED",
+      "VIEWED",
+      "UNPAID",
+      "PARTIALLY_PAID",
+    ])
+    .optional(),
 });
 
 export const updateInvoiceApiSchema = invoiceApiSchema.partial();
+export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+export type PaymentMilestoneValues = z.infer<typeof milestoneSchema>;

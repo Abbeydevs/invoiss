@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
@@ -44,7 +45,10 @@ function CreateInvoicePageContent() {
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
       taxRate: 0,
       discountValue: 0,
-      templateId: templateId || undefined,
+      bankAccountId: "",
+      templateId: templateId || "",
+      customerId: "",
+
       hasPaymentSchedule: false,
     },
   });
@@ -72,6 +76,16 @@ function CreateInvoicePageContent() {
 
   useEffect(() => {
     if (isEditMode && existingInvoice) {
+      console.log("=== DEBUGGING EDIT MODE ===");
+      console.log("1. Full Invoice Data:", existingInvoice);
+
+      console.log("2. Bank Account Relation:", existingInvoice.bankAccount);
+      console.log("3. Template Relation:", existingInvoice.template);
+      console.log("4. Customer Relation:", existingInvoice.customer);
+
+      console.log("5. Bank Account ID found:", existingInvoice.bankAccount?.id);
+      console.log("6. Template ID found:", existingInvoice.template?.id);
+
       form.reset({
         billToName: existingInvoice.billToName,
         billToEmail: existingInvoice.billToEmail,
@@ -92,6 +106,14 @@ function CreateInvoicePageContent() {
         discountValue: existingInvoice.discountValue ?? undefined,
         paymentTerms: existingInvoice.paymentTerms ?? undefined,
         notes: existingInvoice.notes ?? undefined,
+
+        hasPaymentSchedule: existingInvoice.hasPaymentSchedule,
+        milestones: existingInvoice.paymentMilestones?.map((m: any) => ({
+          name: m.name,
+          amount: m.amount,
+          percentage: m.percentage,
+          dueDate: new Date(m.dueDate),
+        })),
       });
     }
   }, [isEditMode, existingInvoice, form]);
@@ -325,13 +347,10 @@ function CreateInvoicePageContent() {
         </div>
       </div>
 
-      {/* Main Content Area - Responsive Split */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Editor Side (Form) */}
         <div
           className={cn(
             "flex-none bg-white border-r border-gray-200 overflow-y-auto w-full lg:w-[420px] transition-transform duration-300 absolute inset-0 lg:relative z-10 lg:z-0",
-            // On mobile: Hide if viewing preview
             mobileView === "preview"
               ? "-translate-x-full lg:translate-x-0"
               : "translate-x-0",
@@ -340,11 +359,9 @@ function CreateInvoicePageContent() {
           <InvoiceEditorForm form={form} isSubmitting={isSubmitting} />
         </div>
 
-        {/* Preview Side */}
         <div
           className={cn(
             "flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-gray-100 absolute inset-0 lg:relative transition-transform duration-300",
-            // On mobile: Hide if viewing edit form
             mobileView === "edit"
               ? "translate-x-full lg:translate-x-0"
               : "translate-x-0",

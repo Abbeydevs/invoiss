@@ -49,6 +49,9 @@ export type Invoice = {
     | "PAID"
     | "OVERDUE"
     | "CANCELLED";
+  customerId?: string | null;
+  bankAccountId: string;
+  templateId: string;
   customer: {
     id: string;
     name: string;
