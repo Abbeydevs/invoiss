@@ -242,6 +242,7 @@ model Invoice {
   bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
 
   invoiceNumber String
+  currency      String   @default("NGN")
   invoiceDate   DateTime @default(now())
   dueDate       DateTime
 

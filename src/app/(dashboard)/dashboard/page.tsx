@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileText,
@@ -11,6 +11,7 @@ import {
   TrendingUp,
   ArrowRight,
   Plus,
+  Globe,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -30,9 +31,12 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 
 export default function DashboardPage() {
-  const { status, data: session } = useSession();
-  const currency = session?.user?.currency || "NGN";
+  const { status } = useSession();
   const router = useRouter();
+
+  const [activeView, setActiveView] = useState<
+    "UNIVERSAL" | "NGN" | "USD" | "GBP" | "EUR"
+  >("UNIVERSAL");
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
@@ -54,33 +58,115 @@ export default function DashboardPage() {
     );
   }
 
+  let displayRevenue = 0;
+  let displayPending = 0;
+  let displayCurrency = "USD";
+
+  if (activeView === "UNIVERSAL") {
+    displayRevenue = stats?.universalTotals?.amountPaid || 0;
+    displayPending = stats?.universalTotals?.balanceDue || 0;
+    displayCurrency = "USD";
+  } else {
+    const bucket = stats?.totalsByCurrency?.find(
+      (b) => b.currency === activeView,
+    );
+    displayRevenue = bucket?.amountPaid || 0;
+    displayPending = bucket?.balanceDue || 0;
+    displayCurrency = activeView;
+  }
+
   return (
     <DashboardLayout
       title="Dashboard"
       subtitle="Overview of your business performance"
     >
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Sleek Currency View Toggle */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <Button
+            variant={activeView === "UNIVERSAL" ? "default" : "outline"}
+            onClick={() => setActiveView("UNIVERSAL")}
+            className={
+              activeView === "UNIVERSAL"
+                ? "bg-[#1451cb] text-white"
+                : "bg-white"
+            }
+            size="sm"
+          >
+            <Globe className="h-4 w-4 mr-2" />
+            Universal (USD)
+          </Button>
+          <Button
+            variant={activeView === "NGN" ? "default" : "outline"}
+            onClick={() => setActiveView("NGN")}
+            className={
+              activeView === "NGN" ? "bg-[#1451cb] text-white" : "bg-white"
+            }
+            size="sm"
+          >
+            ₦ NGN
+          </Button>
+          <Button
+            variant={activeView === "USD" ? "default" : "outline"}
+            onClick={() => setActiveView("USD")}
+            className={
+              activeView === "USD" ? "bg-[#1451cb] text-white" : "bg-white"
+            }
+            size="sm"
+          >
+            $ USD
+          </Button>
+          <Button
+            variant={activeView === "GBP" ? "default" : "outline"}
+            onClick={() => setActiveView("GBP")}
+            className={
+              activeView === "GBP" ? "bg-[#1451cb] text-white" : "bg-white"
+            }
+            size="sm"
+          >
+            £ GBP
+          </Button>
+          <Button
+            variant={activeView === "EUR" ? "default" : "outline"}
+            onClick={() => setActiveView("EUR")}
+            className={
+              activeView === "EUR" ? "bg-[#1451cb] text-white" : "bg-white"
+            }
+            size="sm"
+          >
+            € EUR
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
-            title="Total Revenue"
-            value={formatCurrency(stats?.totalRevenue || 0, currency)}
+            title={
+              activeView === "UNIVERSAL"
+                ? "Universal Revenue"
+                : `${activeView} Revenue`
+            }
+            value={formatCurrency(displayRevenue, displayCurrency)}
             variant="primary"
             icon={<Wallet className="h-5 w-5" />}
           />
           <StatCard
-            title="Pending Payments"
-            value={formatCurrency(stats?.totalPending || 0, currency)}
+            title={
+              activeView === "UNIVERSAL"
+                ? "Universal Pending"
+                : `${activeView} Pending`
+            }
+            value={formatCurrency(displayPending, displayCurrency)}
             variant="warning"
             icon={<TrendingUp className="h-5 w-5" />}
           />
           <StatCard
             title="Total Invoices"
-            value={stats?.totalInvoices.toString() || "0"}
+            value={stats?.counts?.invoices?.toString() || "0"}
             icon={<FileText className="h-5 w-5" />}
           />
           <StatCard
             title="Total Customers"
-            value={stats?.totalCustomers.toString() || "0"}
+            value={stats?.counts?.customers?.toString() || "0"}
             icon={<Users className="h-5 w-5" />}
           />
         </div>
@@ -100,7 +186,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-gray-100">
-                {stats?.recentInvoices.length === 0 ? (
+                {!stats?.recentInvoices || stats.recentInvoices.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
                       <FileText className="h-6 w-6 text-gray-400" />
@@ -113,7 +199,7 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                 ) : (
-                  stats?.recentInvoices.map((invoice) => (
+                  stats.recentInvoices.map((invoice) => (
                     <div
                       key={invoice.id}
                       className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer group"
@@ -137,7 +223,10 @@ export default function DashboardPage() {
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 pl-2 shrink-0">
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-900">
-                            {formatCurrency(invoice.totalAmount, currency)}
+                            {formatCurrency(
+                              invoice.totalAmount,
+                              invoice.currency || "NGN",
+                            )}
                           </p>
                           <p className="text-xs text-gray-500">
                             {format(new Date(invoice.invoiceDate), "MMM d")}

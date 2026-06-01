@@ -208,7 +208,7 @@ export function ExecutivePreview({ invoice, currency }: InvoicePreviewProps) {
                   <div className="flex justify-between text-slate-700 font-sans">
                     <span className="font-medium">Discount</span>
                     <span className="text-red-600 font-semibold">
-                      -{formatCurrency(invoice.discountAmount)}
+                      -{formatCurrency(invoice.discountAmount, currency)}
                     </span>
                   </div>
                 )}

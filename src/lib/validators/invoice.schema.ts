@@ -21,6 +21,7 @@ export const invoiceSchema = z.object({
   billToAddress: z.string().optional(),
   invoiceDate: z.date(),
   dueDate: z.date(),
+  currency: z.enum(["NGN", "USD", "GBP", "EUR"]),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
   taxRate: z.number().min(0).max(100).optional(),
   discountType: z.enum(["PERCENTAGE", "FIXED"]).optional(),

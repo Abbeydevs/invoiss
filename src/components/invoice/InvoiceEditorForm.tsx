@@ -76,7 +76,6 @@ interface InvoiceEditorFormProps {
 
 export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
   const { data: session } = useSession();
-  const currency = session?.user?.currency || "NGN";
   const queryClient = useQueryClient();
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerComboboxOpen, setCustomerComboboxOpen] = useState(false);
@@ -113,7 +112,8 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
     }
   };
 
-  const currencySymbol = getCurrencySymbol(currency);
+  const selectedCurrency = form.watch("currency") || "NGN";
+  const currencySymbol = getCurrencySymbol(selectedCurrency);
 
   const customerMutation = useMutation({
     mutationFn: createCustomer,
@@ -422,6 +422,36 @@ export function InvoiceEditorForm({ form }: InvoiceEditorFormProps) {
               )}
             />
             <Separator />
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs lg:text-sm">
+                    Invoice Currency
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-9 lg:h-10 text-sm bg-white">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="NGN">NGN - Nigerian Naira</SelectItem>
+                      <SelectItem value="USD">USD - US Dollar</SelectItem>
+                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                      <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="bankAccountId"

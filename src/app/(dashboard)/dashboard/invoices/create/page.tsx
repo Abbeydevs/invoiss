@@ -48,7 +48,7 @@ function CreateInvoicePageContent() {
       bankAccountId: "",
       templateId: templateId || "",
       customerId: "",
-
+      currency: "NGN",
       hasPaymentSchedule: false,
     },
   });

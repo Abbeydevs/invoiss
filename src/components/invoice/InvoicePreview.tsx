@@ -28,7 +28,7 @@ interface InvoicePreviewProps {
 export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const { data: session } = useSession();
   const isProUser = session?.user?.planType === "PRO";
-  const currency = session?.user?.currency || "NGN";
+  const currency = invoice.currency || session?.user?.currency || "NGN";
   const templateId = invoice.template?.id;
 
   const renderTemplate = () => {

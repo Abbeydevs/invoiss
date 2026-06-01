@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { startOfMonth, subMonths, format } from "date-fns";
-
-export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -15,109 +12,106 @@ export async function GET() {
     }
 
     const userId = session.user.id;
-    const now = new Date();
-    const sixMonthsAgo = startOfMonth(subMonths(now, 5));
 
-    const [
-      totalInvoices,
-      totalCustomers,
-      revenueStats,
-      pendingStats,
-      recentInvoices,
-      monthlyInvoices,
-    ] = await Promise.all([
-      prisma.invoice.count({
-        where: { userId },
-      }),
+    const groupedInvoices = await prisma.invoice.groupBy({
+      by: ["currency"],
+      where: { userId: userId },
+      _sum: {
+        totalAmount: true,
+        amountPaid: true,
+        balanceDue: true,
+      },
+    });
 
-      prisma.customer.count({
-        where: { userId },
-      }),
-
-      prisma.invoice.aggregate({
-        _sum: {
-          amountPaid: true,
-        },
-        where: { userId },
-      }),
-
-      prisma.invoice.aggregate({
-        _sum: {
-          balanceDue: true,
-        },
-        where: {
-          userId,
-          status: {
-            notIn: ["DRAFT", "CANCELLED"],
+    let exchangeRates: Record<string, number> = {};
+    try {
+      const rateRes = await fetch(
+        `https://api.currencybeacon.com/v1/latest?base=USD`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.CURRENCY_BEACON_API_KEY}`,
           },
+          next: { revalidate: 3600 },
         },
-      }),
+      );
 
-      prisma.invoice.findMany({
-        where: { userId },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: {
-          customer: {
-            select: { name: true },
-          },
-        },
-      }),
-
-      prisma.invoice.findMany({
-        where: {
-          userId,
-          invoiceDate: {
-            gte: sixMonthsAgo,
-          },
-          status: { not: "CANCELLED" },
-        },
-        select: {
-          invoiceDate: true,
-          totalAmount: true,
-        },
-        orderBy: {
-          invoiceDate: "asc",
-        },
-      }),
-    ]);
-
-    const revenueMap = new Map<string, number>();
-    for (let i = 5; i >= 0; i--) {
-      const date = subMonths(now, i);
-      const monthKey = format(date, "MMM");
-      revenueMap.set(monthKey, 0);
-    }
-
-    monthlyInvoices.forEach((inv) => {
-      const monthKey = format(new Date(inv.invoiceDate), "MMM");
-      if (revenueMap.has(monthKey)) {
-        revenueMap.set(
-          monthKey,
-          (revenueMap.get(monthKey) || 0) + inv.totalAmount,
+      if (rateRes.ok) {
+        const rateData = await rateRes.json();
+        exchangeRates = rateData.rates;
+      } else {
+        console.warn(
+          "Failed to fetch CurrencyBeacon rates, falling back to 1:1",
         );
       }
+    } catch (error) {
+      console.error("Exchange rate fetch error:", error);
+    }
+
+    let universalTotalUsd = 0;
+    let universalBalanceDueUsd = 0;
+    let universalAmountPaidUsd = 0;
+
+    const totalsByCurrency = groupedInvoices.map((group) => {
+      const curr = group.currency;
+      const totalAmount = group._sum.totalAmount || 0;
+      const amountPaid = group._sum.amountPaid || 0;
+      const balanceDue = group._sum.balanceDue || 0;
+
+      const rate = exchangeRates[curr] || 1;
+
+      const totalInUsd = curr === "USD" ? totalAmount : totalAmount / rate;
+      const paidInUsd = curr === "USD" ? amountPaid : amountPaid / rate;
+      const balanceInUsd = curr === "USD" ? balanceDue : balanceDue / rate;
+
+      universalTotalUsd += totalInUsd;
+      universalAmountPaidUsd += paidInUsd;
+      universalBalanceDueUsd += balanceInUsd;
+
+      return {
+        currency: curr,
+        totalAmount,
+        amountPaid,
+        balanceDue,
+      };
     });
 
-    const revenueTrend = Array.from(revenueMap.entries()).map(
-      ([name, value]) => ({
-        name,
-        value,
-      }),
-    );
+    const totalInvoicesCount = await prisma.invoice.count({
+      where: { userId },
+    });
+    const totalCustomersCount = await prisma.customer.count({
+      where: { userId },
+    });
+
+    const recentInvoices = await prisma.invoice.findMany({
+      where: { userId },
+      orderBy: { invoiceDate: "desc" },
+      take: 5,
+      include: {
+        customer: {
+          select: { name: true },
+        },
+      },
+    });
 
     return NextResponse.json({
-      totalInvoices,
-      totalCustomers,
-      totalRevenue: revenueStats._sum.amountPaid || 0,
-      totalPending: pendingStats._sum.balanceDue || 0,
+      success: true,
+      totalsByCurrency,
+      universalTotals: {
+        currency: "USD",
+        totalAmount: universalTotalUsd,
+        amountPaid: universalAmountPaidUsd,
+        balanceDue: universalBalanceDueUsd,
+      },
+      counts: {
+        invoices: totalInvoicesCount,
+        customers: totalCustomersCount,
+      },
       recentInvoices,
-      revenueTrend,
     });
   } catch (error) {
-    console.error("Analytics error:", error);
+    console.error("Analytics engine error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch analytics" },
+      { error: "Failed to generate analytics" },
       { status: 500 },
     );
   }

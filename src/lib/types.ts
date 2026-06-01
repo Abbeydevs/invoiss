@@ -37,6 +37,7 @@ export type Profile = {
 export type Invoice = {
   id: string;
   invoiceNumber: string;
+  currency: string;
   invoiceDate: string;
   dueDate: string;
   totalAmount: number;
@@ -112,11 +113,23 @@ export type InvoiceDetail = Invoice & {
 };
 
 export type DashboardStats = {
-  totalInvoices: number;
-  totalCustomers: number;
-  totalRevenue: number;
-  totalPending: number;
-  recentInvoices: Invoice[];
+  totalsByCurrency: {
+    currency: string;
+    totalAmount: number;
+    amountPaid: number;
+    balanceDue: number;
+  }[];
+  universalTotals: {
+    currency: string;
+    totalAmount: number;
+    amountPaid: number;
+    balanceDue: number;
+  };
+  counts: {
+    invoices: number;
+    customers: number;
+  };
+  recentInvoices: (Invoice & { currency: string })[];
 };
 
 export type WalletTransaction = {
