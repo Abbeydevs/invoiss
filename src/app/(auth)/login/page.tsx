@@ -12,14 +12,6 @@ function LoginContent() {
 
   return (
     <div className="w-full max-w-md animate-in fade-in slide-in-from-right duration-500">
-      {/* <div className="mb-8">
-        <Link href="/" className="inline-block">
-          <h1 className="text-3xl font-bold bg-linear-to-r from-[#1451cb] to-purple-600 bg-clip-text text-transparent">
-            Invoiss
-          </h1>
-        </Link>
-      </div> */}
-
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
         <p className="text-gray-600">

@@ -7,14 +7,6 @@ export default function RegisterPage() {
     <div className="min-h-screen flex">
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-left duration-500">
-          {/* <div className="mb-8">
-            <Link href="/" className="inline-block">
-              <h1 className="text-3xl font-bold bg-linear-to-r from-[#1451cb] to-purple-600 bg-clip-text text-transparent">
-                Invoiss
-              </h1>
-            </Link>
-          </div> */}
-
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               Create your account

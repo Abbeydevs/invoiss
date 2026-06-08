@@ -3,8 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { verify } from "jsonwebtoken";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
@@ -14,6 +17,11 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -47,6 +55,7 @@ export const authOptions: NextAuthOptions = {
                   accountType: user.accountType,
                   role: user.role,
                   currency: user.currency,
+                  hasProfile: !!user.profile,
                 };
               }
             }
@@ -68,7 +77,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user) {
+        if (!user || !user.password) {
           throw new Error("Invalid email or password");
         }
 
@@ -103,6 +112,7 @@ export const authOptions: NextAuthOptions = {
           accountType: user.accountType,
           role: user.role,
           currency: user.currency,
+          hasProfile: !!user.profile,
         };
       },
     }),
@@ -115,6 +125,13 @@ export const authOptions: NextAuthOptions = {
         token.accountType = user.accountType;
         token.role = user.role;
         token.currency = user.currency;
+
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          include: { profile: true },
+        });
+
+        token.hasProfile = !!dbUser?.profile;
       }
 
       if (trigger === "update" && session?.currency) {
@@ -122,12 +139,18 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (trigger === "update") {
+        if (session?.currency) {
+          token.currency = session.currency;
+        }
+
         const freshUser = await prisma.user.findUnique({
           where: { id: token.id as string },
+          include: { profile: true },
         });
 
         if (freshUser) {
           token.planType = freshUser.planType;
+          token.hasProfile = !!freshUser.profile;
         }
       }
 
@@ -140,6 +163,7 @@ export const authOptions: NextAuthOptions = {
         session.user.accountType = token.accountType as string;
         session.user.role = token.role as string;
         session.user.currency = user?.currency || token?.currency || "NGN";
+        session.user.hasProfile = token.hasProfile as boolean;
       }
       return session;
     },

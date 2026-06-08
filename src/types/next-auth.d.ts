@@ -9,6 +9,7 @@ declare module "next-auth" {
     accountType: string;
     role: string;
     currency: string;
+    hasProfile?: boolean;
   }
 
   interface Session {
@@ -20,6 +21,7 @@ declare module "next-auth" {
       accountType: string;
       role: string;
       currency: string;
+      hasProfile: boolean;
     };
   }
 }
@@ -31,5 +33,6 @@ declare module "next-auth/jwt" {
     accountType: string;
     role: string;
     currency: string;
+    hasProfile: boolean;
   }
 }
