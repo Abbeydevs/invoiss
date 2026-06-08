@@ -26,11 +26,15 @@ export default withAuth(
     if (isAuth) {
       const hasProfile = token?.hasProfile;
 
-      if (!hasProfile && !isOnboarding) {
+      const createdAtString = token.createdAt as unknown as string;
+      const isLegacyUser =
+        new Date(createdAtString).getTime() < new Date("2026-06-01").getTime();
+
+      if (!hasProfile && !isLegacyUser && !isOnboarding) {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       }
 
-      if (hasProfile && isOnboarding) {
+      if (hasProfile && !isLegacyUser && isOnboarding) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
     }

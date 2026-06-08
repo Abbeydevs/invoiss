@@ -56,6 +56,7 @@ export const authOptions: NextAuthOptions = {
                   role: user.role,
                   currency: user.currency,
                   hasProfile: !!user.profile,
+                  createdAt: user.createdAt,
                 };
               }
             }
@@ -113,6 +114,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           currency: user.currency,
           hasProfile: !!user.profile,
+          createdAt: user.createdAt,
         };
       },
     }),
@@ -125,6 +127,7 @@ export const authOptions: NextAuthOptions = {
         token.accountType = user.accountType;
         token.role = user.role;
         token.currency = user.currency;
+        token.createdAt = user.createdAt;
 
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },

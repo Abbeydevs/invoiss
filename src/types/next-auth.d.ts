@@ -10,6 +10,7 @@ declare module "next-auth" {
     role: string;
     currency: string;
     hasProfile?: boolean;
+    createdAt: Date;
   }
 
   interface Session {
@@ -34,5 +35,6 @@ declare module "next-auth/jwt" {
     role: string;
     currency: string;
     hasProfile: boolean;
+    createdAt: Date;
   }
 }
